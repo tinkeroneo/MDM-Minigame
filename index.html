@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Love your Data 💙 – Complete v5</title>
+  <title>Love your Data 💙 – Complete v6</title>
   <style>
     :root{
       --bg:#0b0f17;
@@ -167,7 +167,7 @@
           </span>
         </div>
         <div class="sub">
-          Fixe rote Fehler und merge Dubletten. MDM macht’s leichter.
+          Fixe rote Fehler und merge Dubletten. (Tipp: Ghost-Tap = teuer & lokal.)
         </div>
       </div>
 
@@ -1549,12 +1549,15 @@
         return;
       }
 
-      // Resolve tasks quickly
+      // Resolve tasks with a short readable delay (demo should be legible)
       if(game.task){
-        // pick a random option; sometimes wrong to show effect
-        if(Math.random() < 0.72){
-          const ok = game.taskRects.find(x=>x.ok) || game.taskRects[0];
-          if(ok) resolveTask(true);
+        game.demo.nextActionIn -= dt;
+        if(game.demo.nextActionIn > 0) return;
+        game.demo.nextActionIn = 0.85 + Math.random()*0.55;
+
+        // Mostly correct to show flow, sometimes wrong to demonstrate consequences
+        if(Math.random() < 0.82){
+          resolveTask(true);
         } else {
           resolveTask(false);
         }

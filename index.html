@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Love your Data 💙 – Complete</title>
+  <title>Love your Data 💙 – Complete v3</title>
   <style>
     :root{
       --bg:#0b0f17;
@@ -12,7 +12,7 @@
       --good:#22c55e;
       --warn:#f59e0b;
       --bad:#ef4444;
-      --mdm-blue:#6485c1;
+      --mdm-blue:#6485c1; /* Future Blue */
       --shadow: 0 10px 30px rgba(0,0,0,.35);
       --radius:16px;
     }
@@ -46,7 +46,7 @@
     .sub{
       color:var(--muted);
       font-size:12.5px; line-height:1.25;
-      max-width: 64ch;
+      max-width: 70ch;
     }
     .pill{
       display:inline-flex; align-items:center; gap:6px;
@@ -125,7 +125,7 @@
       background: rgba(17,24,39,.78);
       border: 1px solid rgba(255,255,255,.10);
       box-shadow: var(--shadow);
-      max-width: min(640px, calc(100% - 20px));
+      max-width: min(700px, calc(100% - 20px));
       transform: translateY(-6px);
       opacity:0;
       pointer-events:none;
@@ -167,8 +167,7 @@
           </span>
         </div>
         <div class="sub">
-          Tippen = Fix (rot) • Long-Press auf orange = Merge • Long-Press auf System-Kreis = Kontext.  
-          Stammdaten entstehen früh, replizieren später – die teuersten Folgen kommen am Ende.
+          Tippen rot am Ursprung = Fix • Tippen auf Replikat (Ghost) = teurer Lokalfix • Long-Press auf orange = Merge • Long-Press auf System-Kreis = Kontext.
         </div>
       </div>
 
@@ -228,6 +227,9 @@
   </div>
 
   <script>
+    // =========================
+    // Utilities
+    // =========================
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
     const lerp  = (a,b,t)=>a+(b-a)*t;
     const rnd   = (a,b)=>a+Math.random()*(b-a);
@@ -239,10 +241,16 @@
     function qualityColor(q){ if(q>=80) return getCSS("--good"); if(q>=55) return getCSS("--warn"); return getCSS("--bad"); }
     function stars(n){ return "★".repeat(n) + "☆".repeat(5-n); }
 
+    // =========================
+    // Canvas setup
+    // =========================
     const canvas = document.getElementById("c");
     const stage  = document.getElementById("stage");
     const ctx    = canvas.getContext("2d", { alpha: true });
 
+    // =========================
+    // Content
+    // =========================
     const SYSTEM_LABELS = [
       ["ERP"],
       ["ERP","CRM","Shop"],
@@ -252,22 +260,48 @@
     ];
 
     const SYSTEM_INFO = {
-      "ERP":     { title:"ERP",      text:"Entstehung & Pflege von Stammdaten.", impact:"Fehler hier → replizieren überall hin." },
+      "ERP":     { title:"ERP",      text:"Entstehung & Pflege von Stammdaten.", impact:"Fix hier = Ursache weg, wirkt in allen Folgesystemen." },
       "CRM":     { title:"CRM",      text:"Kundenpflege & Service-Kontext.",      impact:"Dubletten hier → Kunde wird nicht erkannt." },
-      "Shop":    { title:"Shop",     text:"Checkout nutzt replizierte Daten.",   impact:"Falsche Adresse → Lieferung schief." },
-      "WMS":     { title:"WMS",      text:"Versand nutzt replizierte Daten.",    impact:"Falscher Artikel → Retouren & Kosten." },
+      "Shop":    { title:"Shop",     text:"Checkout nutzt replizierte Daten.",   impact:"Lokalfix möglich – aber Ursprung bleibt falsch." },
+      "WMS":     { title:"WMS",      text:"Versand nutzt replizierte Daten.",    impact:"Lokalfix teuer; Fehler kann zurückkommen." },
       "BI":      { title:"BI",       text:"Reports aggregieren replizierte Daten.", impact:"Falsche KPIs → falsche Entscheidungen." },
-      "Finance": { title:"Finance",  text:"Abrechnung nutzt replizierte Daten.", impact:"Falsch → Reklamationen & Vertrauensverlust." },
+      "Finance": { title:"Finance",  text:"Abrechnung nutzt replizierte Daten.", impact:"Fehler spät = Reklamationen & Aufwand." },
       "Support": { title:"Support",  text:"Tickets brauchen saubere IDs.",       impact:"Kunde nicht auffindbar → Frust." },
       "PIM":     { title:"PIM",      text:"Produktstammdaten als Quelle.",       impact:"Inkonsistent → falsche Infos im Shop." },
       "DataLake":{ title:"Data Lake",text:"Zentrale Datenbasis.",               impact:"Garbage in → Garbage out." }
     };
 
-    const TASKS = [
-      { icon: "📞", text: "Anruf vom Kundenservice" },
-      { icon: "📧", text: "Eilige Mail vom Vertrieb" },
-      { icon: "📦", text: "Versandproblem klären" },
-      { icon: "💬", text: "Rückfrage aus der Buchhaltung" }
+    const TASK_BANK = [
+      {
+        icon:"📞",
+        title:"Anruf vom Kundenservice",
+        prompt:"Kunde ist aufgebracht. Was machst du zuerst?",
+        options:[
+          {label:"Ticket anlegen", ok:true},
+          {label:"Später zurückrufen", ok:false},
+          {label:"Weiterleiten", ok:false}
+        ]
+      },
+      {
+        icon:"📦",
+        title:"Versandproblem",
+        prompt:"Lieferadresse passt nicht zum Kunden. Aktion?",
+        options:[
+          {label:"Adresse verifizieren", ok:true},
+          {label:"Einfach schicken", ok:false},
+          {label:"Stornieren", ok:false}
+        ]
+      },
+      {
+        icon:"💬",
+        title:"Rückfrage Finance",
+        prompt:"Zahlungsdaten unklar. Wie reagierst du?",
+        options:[
+          {label:"Stammdatensatz prüfen", ok:true},
+          {label:"Schätzen & buchen", ok:false},
+          {label:"Ignorieren", ok:false}
+        ]
+      }
     ];
 
     const IMPACTS = [
@@ -280,11 +314,12 @@
     ];
 
     const LEVELS = [
-      { id:1, name:"First Date (Tutorial)", systems:1, records:10, baseErrorRate:0.012, duplicateRate:0.000, replRate:0.55, costPerBadPerSec:0.5, timeWeight:1.0 },
-      { id:2, name:"Offene Beziehung",     systems:3, records:18, baseErrorRate:0.020, duplicateRate:0.012, replRate:0.75, costPerBadPerSec:1.8, timeWeight:1.15 },
-      { id:3, name:"Commitment Issues",    systems:6, records:28, baseErrorRate:0.028, duplicateRate:0.020, replRate:0.85, costPerBadPerSec:3.2, timeWeight:1.35 },
-      { id:4, name:"Toxisch",              systems:9, records:40, baseErrorRate:0.034, duplicateRate:0.026, replRate:0.92, costPerBadPerSec:4.6, timeWeight:1.65 },
-      { id:5, name:"True Love (MDM)",      systems:9, records:40, baseErrorRate:0.016, duplicateRate:0.006, replRate:0.62, costPerBadPerSec:1.0, timeWeight:0.95, forceMdm:true }
+      // L1: no incidents by design (single system)
+      { id:1, name:"First Date (Tutorial)", systems:1, records:10, baseErrorRate:0.012, duplicateRate:0.000, replRate:0.00, costPerBadPerSec:0.25, timeWeight:1.0, incidents:false },
+      { id:2, name:"Offene Beziehung",     systems:3, records:18, baseErrorRate:0.020, duplicateRate:0.012, replRate:0.75, costPerBadPerSec:1.8, timeWeight:1.15, incidents:true  },
+      { id:3, name:"Commitment Issues",    systems:6, records:28, baseErrorRate:0.028, duplicateRate:0.020, replRate:0.85, costPerBadPerSec:3.2, timeWeight:1.35, incidents:true  },
+      { id:4, name:"Toxisch",              systems:9, records:40, baseErrorRate:0.034, duplicateRate:0.026, replRate:0.92, costPerBadPerSec:4.6, timeWeight:1.65, incidents:true  },
+      { id:5, name:"True Love (MDM)",      systems:9, records:40, baseErrorRate:0.016, duplicateRate:0.006, replRate:0.62, costPerBadPerSec:1.0, timeWeight:0.95, forceMdm:true, incidents:true }
     ];
 
     class Record{
@@ -292,15 +327,19 @@
         this.x=x; this.y=y;
         this.vx=rnd(-18,18); this.vy=rnd(-18,18);
         this.r=11;
-        this.state="good";
-        this.originSys=0;
-        this.repTo=0;
+        this.state="good"; // good | bad | dupA | dupB
+        this.originSys=0;  // stays here
+        this.repTo=0;      // replicated up to system index
+        this.localFixTo=-1; // local patch up to sys index (ghost fix), origin still wrong
         this.id = Math.random().toString(16).slice(2);
         this.link=null;
         this.jitter=rnd(0,1000);
       }
     }
 
+    // =========================
+    // State
+    // =========================
     const game = {
       viewport:{w:0,h:0},
       dpr:1,
@@ -320,8 +359,9 @@
       tutorial:{ active:false, step:0 },
       tutorialImpactDone:false,
 
-      activeTask:null,
-      taskTimer:0,
+      task:null,          // active minigame task
+      taskUntil:0,
+      taskRects:[],       // hitboxes for task options
 
       nextImpactIn:7.5,
       nextEventIn:7.0,
@@ -349,6 +389,9 @@
       game.toastAt = now();
     }
 
+    // =========================
+    // Layout
+    // =========================
     function resize(){
       const r = stage.getBoundingClientRect();
       const dpr = Math.max(1, Math.min(2.25, window.devicePixelRatio || 1));
@@ -382,14 +425,32 @@
       });
     }
 
+    // =========================
+    // Metrics
+    // =========================
+    function effectiveStateAtSys(r, sysIdx){
+      // If local fix exists up to this system, replica is "patched" (even if origin still bad)
+      if(r.localFixTo >= sysIdx) return "good";
+      return r.state;
+    }
+
     function computeQuality(){
-      let bad=0, dup=0;
+      // quality should reflect "real world": upstream truth is what matters most, but patched late helps a bit
+      let bad=0, dup=0, patched=0;
       for(const r of game.records){
         if(r.state==="bad") bad++;
         if(r.state==="dupA" || r.state==="dupB") dup++;
+        if(r.localFixTo >= 2) patched++;
       }
       const total = game.records.length || 1;
-      const q = clamp(100 - (bad/total)*65 - (dup/total)*55, 0, 100);
+
+      // base penalty from truth
+      let q = 100 - (bad/total)*62 - (dup/total)*52;
+
+      // small relief if many late local patches exist (still not great)
+      q += (patched/total)*10;
+
+      q = clamp(q, 0, 100);
       game.metrics.errors = bad;
       game.metrics.dups = Math.floor(dup/2);
       game.metrics.quality = q;
@@ -420,96 +481,151 @@
       el("fixVal").textContent = String(m.fixes);
       el("costVal").textContent = fmtEuro(m.cost);
       el("timeVal").textContent = m.timeSpent.toFixed(1);
-      el("spreadVal").textContent = replLabel();
+      el("spreadVal").textContent = (LEVELS[game.lvlIndex].systems < 2) ? "—" : replLabel();
 
       el("scoreVal").textContent = String(Math.round(m.score));
       el("statusVal").textContent = game.sessionOn ? game.sessionState : "free";
       if(game.sessionOn) el("timerLbl").textContent = `${Math.ceil(game.sessionLeft)}s`;
     }
 
+    // =========================
+    // Tutorial
+    // =========================
     function tutorialStartIfLevel1(){
       const L = LEVELS[game.lvlIndex];
       if(L.id !== 1){ game.tutorial.active=false; return; }
       game.tutorial.active=true;
       game.tutorial.step=0;
       game.tutorialImpactDone=false;
-      toast("Ein ganz normaler Arbeitstag.", "Tutorial");
+      toast("Level 1: Du siehst nur den Ursprung. Folgen kommen später.", "Tutorial");
     }
 
     function tutorialTick(){
       if(!game.tutorial.active) return;
       switch(game.tutorial.step){
         case 0:
-          game.records.forEach((r,i)=>{ r.state=(i===0?"bad":"good"); r.link=null; r.repTo=0; });
-          toast("Du pflegst Stammdaten. Tippe rot zum Fix.", "Tutorial");
+          game.records.forEach((r,i)=>{ r.state=(i===0?"bad":"good"); r.link=null; r.repTo=0; r.localFixTo=-1; });
+          toast("Tippe rot zum Fix am Ursprung.", "Tutorial");
           game.tutorial.step=1;
           break;
         case 1:
           if(game.metrics.errors===0){
-            toast("Gut ✔️ Jetzt läuft die Replikation an …", "Tutorial");
+            toast("Gut ✔️ Jetzt kommt echtes Leben: Unterbrechungen.", "Tutorial");
             game.tutorial.step=2;
           }
           break;
         case 2:
-          toast("Währenddessen poppen Tasks auf – nicht jeder kann immer alles prüfen.", "Tutorial");
+          if(!game.task){
+            spawnTask(true);
+            toast("Mini-Task: schnell entscheiden – dann zurück zur Bereinigung.", "Tutorial");
+          }
           game.tutorial.step=3;
           break;
         case 3:
-          if(game.activeTask){
-            if(!game.tutorialImpactDone){
-              game.tutorialImpactDone=true;
-              triggerImpact("Tutorial");
-            }
-            toast("Merksatz: Fehler entstehen früh. Folgen werden spät teuer.", "Tutorial");
+          if(!game.task){
+            toast("Weiter mit Level 2: Replikation + späte Kosten.", "Tutorial");
             game.tutorial.active=false;
           }
           break;
       }
     }
 
-    function spawnTask(){
-      if(game.activeTask || (game.sessionOn && game.sessionState==="ended")) return;
-      game.activeTask = TASKS[(Math.random()*TASKS.length)|0];
-      game.taskTimer = 3.5 + Math.random()*2.5;
-      toast(`${game.activeTask.icon} ${game.activeTask.text}`, "Task");
+    // =========================
+    // Tasks: Minigame over data
+    // =========================
+    function spawnTask(force=false){
+      const L = LEVELS[game.lvlIndex];
+      if(game.task) return;
+      if(game.sessionOn && game.sessionState==="ended") return;
+
+      // In Level 1: allow tutorial task. In others: random
+      if(!force){
+        // probability tuned for not-too-annoying
+        const p = (game.mdm ? 0.05 : 0.085);
+        if(Math.random() > p) return;
+        // avoid spawning if chaos is already high
+        if(game.metrics.quality < 35 && Math.random() < 0.6) return;
+      }
+
+      const t = TASK_BANK[(Math.random()*TASK_BANK.length)|0];
+      // clone and shuffle options
+      const opts = [...t.options].sort(()=>Math.random()-0.5);
+      game.task = {
+        icon:t.icon,
+        title:t.title,
+        prompt:t.prompt,
+        options:opts,
+        // position in canvas space
+        x: rnd(game.viewport.w*0.32, game.viewport.w*0.68),
+        y: rnd(game.viewport.h*0.48, game.viewport.h*0.78),
+      };
+      game.taskUntil = now() + 3200;
+      game.taskRects = [];
     }
 
+    function resolveTask(ok){
+      if(!game.task) return;
+      if(ok){
+        game.metrics.score += 40;
+        toast(`Task erledigt ✔︎ — Fokus zurück auf Stammdaten.`, "Task");
+      } else {
+        // penalty: short burst of background decay / replication boost
+        game.metrics.score -= 45;
+        game.metrics.cost += 120 + (LEVELS[game.lvlIndex].systems*30);
+        toast(`Task schief gelaufen — Datenqualität leidet im Hintergrund.`, "Task");
+        // inject 1-2 new upstream errors to simulate distraction
+        const n = 1 + (Math.random()<0.35 ? 1 : 0);
+        for(let i=0;i<n;i++){
+          const r = game.records.find(x=>x.state==="good" && x.repTo<=1);
+          if(r) r.state="bad";
+        }
+      }
+      game.task = null;
+      game.taskRects = [];
+      game.taskUntil = 0;
+    }
+
+    // =========================
+    // Impacts / Incidents
+    // =========================
     function triggerImpact(reasonTag){
       const damp = game.mdm ? 0.35 : 1.0;
-      const imp = IMPACTS[(Math.random()*IMPACTS.length)|0];
+      const imp = IMPACTS[(Math.random()*IMPACTsLen)|0];
       const spike = (imp.cost[0] + Math.random()*(imp.cost[1]-imp.cost[0])) * damp;
 
       game.metrics.cost += spike;
       game.metrics.score += Math.round(imp.score * damp);
 
-      if(!game.mdm && Math.random() < 0.45){
-        const r = game.records.find(x=>x.state==="good");
-        if(r) r.state="bad";
-      }
-
       toast(`${stars(imp.stars)} <b>${imp.text}</b> <span class="tag">${imp.area}</span> <span class="tag">+${fmtEuro(spike)}</span>`, reasonTag || "Impact");
     }
+    const IMPACTsLen = IMPACTS.length;
 
     function lateExposureSignal(){
       const L = LEVELS[game.lvlIndex];
       const last = Math.max(0, L.systems-1);
       const lateThreshold = Math.max(2, Math.floor(last * 0.7));
+
       let bad=0, dup=0;
       for(const r of game.records){
         if(r.repTo >= lateThreshold){
-          if(r.state==="bad") bad++;
-          if(r.state==="dupA"||r.state==="dupB") dup++;
+          // evaluate state AT late system (patched replicas count as good)
+          const st = effectiveStateAtSys(r, lateThreshold);
+          if(st==="bad") bad++;
+          if(st==="dupA"||st==="dupB") dup++;
         }
       }
       return { badLate: bad, dupLate: dup, lateThreshold };
     }
 
     function maybePropagationEvent(dt){
+      const L = LEVELS[game.lvlIndex];
+      if(!L.incidents) return;
+      if(L.systems < 2) return;
       if(game.sessionOn && game.sessionState!=="live") return;
+
       game.nextEventIn -= dt;
       if(game.nextEventIn > 0) return;
 
-      const L = LEVELS[game.lvlIndex];
       const { badLate, dupLate } = lateExposureSignal();
       if(badLate + dupLate === 0){
         game.nextEventIn = 4.0 + Math.random()*6.0;
@@ -524,60 +640,77 @@
       game.metrics.score -= Math.round(spike * 0.15);
 
       const what = (Math.random()<0.5) ? "Rechnungslauf" : "Versand/CRM";
-      toast(`⚠️ Incident in <b>${what}</b>: replizierte Fehler schlagen durch → <b>${fmtEuro(spike)}</b> Extra-Kosten.`, "Propagation");
+      toast(`⚠️ Incident in <b>${what}</b>: replizierte Fehler schlagen durch → <b>${fmtEuro(spike)}</b> Extra-Kosten.`, "Incident");
 
       game.nextEventIn = 8.0 + Math.random()*8.0;
     }
 
     function maybeImpact(dt){
+      const L = LEVELS[game.lvlIndex];
+      if(!L.incidents) return;
+      if(L.systems < 2) return;
       if(game.sessionOn && game.sessionState!=="live") return;
+
       game.nextImpactIn -= dt;
       if(game.nextImpactIn > 0) return;
 
       const { badLate, dupLate } = lateExposureSignal();
       const lateSignal = clamp((badLate*1.0 + dupLate*1.2) / 6.0, 0, 1);
-      const taskBoost  = game.activeTask ? 0.25 : 0.0;
+      const taskBoost  = game.task ? 0.25 : 0.0;
 
-      if(lateSignal > 0.12 || game.activeTask){
-        const p = clamp(0.18 + lateSignal*0.75 + taskBoost, 0, 0.95);
-        if(Math.random() < p) triggerImpact(game.activeTask ? "Task→Impact" : "Late→Impact");
+      if(lateSignal > 0.12 || game.task){
+        const p = clamp(0.16 + lateSignal*0.75 + taskBoost, 0, 0.95);
+        if(Math.random() < p){
+          const damp = game.mdm ? 0.35 : 1.0;
+          const imp = IMPACTS[(Math.random()*IMPACTsLen)|0];
+          const spike = (imp.cost[0] + Math.random()*(imp.cost[1]-imp.cost[0])) * damp;
+          game.metrics.cost += spike;
+          game.metrics.score += Math.round(imp.score * damp);
+          toast(`${stars(imp.stars)} <b>${imp.text}</b> <span class="tag">${imp.area}</span> <span class="tag">+${fmtEuro(spike)}</span>`, game.task ? "Task→Impact" : "Late→Impact");
+        }
       }
 
       game.nextImpactIn = (game.mdm ? 10.5 : 7.5) + Math.random() * (game.mdm ? 9 : 7);
     }
 
+    // =========================
+    // Simulation
+    // =========================
     function spreadTick(dt){
       const L = LEVELS[game.lvlIndex];
 
-      if(!game.activeTask && Math.random() < dt * 0.15) spawnTask();
+      // spawn minigame tasks (even in level 1, but lower)
+      if(!game.task && (L.id===1 ? Math.random()<dt*0.06 : true)) spawnTask(false);
 
-      let taskFactor = 1.0;
-      if(game.activeTask){
-        game.taskTimer -= dt;
-        taskFactor = 1.35;
-        const penalty = game.mdm ? 0.004 : 0.012;
-        if(Math.random() < penalty){
-          const r = game.records.find(x=>x.state==="good");
-          if(r) r.state="bad";
-        }
-        if(game.taskTimer <= 0) game.activeTask = null;
+      // task timeouts
+      if(game.task && now() > game.taskUntil){
+        resolveTask(false);
       }
 
-      const errRate = L.baseErrorRate * (game.mdm ? 0.30 : 1.0) * taskFactor;
-      const dupRate = L.duplicateRate * (game.mdm ? 0.22 : 1.0) * taskFactor;
-      const replRate = L.replRate * (game.mdm ? 0.45 : 1.0) * (game.activeTask ? 1.10 : 1.0);
+      // Distraction factor: while task is active, more decay + more replication
+      const taskFactor = game.task ? 1.55 : 1.0;
+
+      // "Entstehung" stark früh, Replikation überall
+      const errRate  = L.baseErrorRate * (game.mdm ? 0.30 : 1.0) * taskFactor;
+      const dupRate  = L.duplicateRate * (game.mdm ? 0.22 : 1.0) * taskFactor;
+      const replRate = L.replRate      * (game.mdm ? 0.45 : 1.0) * (game.task ? 1.12 : 1.0);
 
       for(const r of game.records){
         const early = (r.repTo <= 1);
 
+        // Replikation nach hinten (keine neue Entstehung dort)
         const advanceProb = replRate * 0.16 * dt;
-        if(r.repTo < game.systems.length-1 && Math.random() < advanceProb) r.repTo++;
+        if(r.repTo < game.systems.length-1 && Math.random() < advanceProb){
+          r.repTo++;
+        }
 
+        // New errors mainly early
         if(r.state==="good"){
           const pErr = early ? errRate : errRate * 0.12;
           if(Math.random() < pErr * dt) r.state="bad";
         }
 
+        // Duplicates mainly early
         if(r.state==="good" && early && L.systems>=2 && Math.random() < dupRate * dt){
           const a = r;
           const b = new Record(a.x + rnd(-22,22), a.y + rnd(-22,22));
@@ -587,8 +720,20 @@
           a.link=b.id; b.link=a.id;
           game.records.push(b);
         }
+
+        // local patches are fragile: can relapse (more likely the further down you patched)
+        if(r.localFixTo >= 2 && !game.mdm){
+          const frac = r.localFixTo / Math.max(1, (game.systems.length-1));
+          const relapse = (0.010 + frac*0.020) * dt * taskFactor; // ~1-3% per sec during tasks
+          if(Math.random() < relapse){
+            r.localFixTo = -1;
+            // small: no toast spam; only sometimes
+            if(Math.random() < 0.15) toast("Lokalfix ist wieder aufgetaucht – Ursprung war nie sauber.", "Folgesystem");
+          }
+        }
       }
 
+      // Upstream contamination (copy/paste/import)
       const infectors = game.records.filter(r => r.state!=="good");
       if(infectors.length){
         const attempts = Math.min(40, infectors.length);
@@ -596,26 +741,36 @@
           const src = infectors[(Math.random()*infectors.length)|0];
           const cand = game.records[(Math.random()*game.records.length)|0];
           if(!cand || cand.state!=="good") continue;
-          if(cand.repTo > 1) continue;
+          if(cand.repTo > 1) continue; // only early "creation"
 
           const dx = cand.x - src.x, dy = cand.y - src.y;
           const dist2 = dx*dx + dy*dy;
           const radius = 120;
-          const p = 0.06 * dt * (dist2 < radius*radius ? 0.9 : 0.2) * (game.mdm ? 0.45 : 1.0);
+          const p = 0.06 * dt * (dist2 < radius*radius ? 0.9 : 0.2) * (game.mdm ? 0.45 : 1.0) * taskFactor;
           if(Math.random() < p) cand.state="bad";
         }
       }
 
       computeQuality();
 
+      // Cost: base from existing bad/dup; reduced if patched late; amplified by how far unpatched error replicated
       let lateWeightSum = 0;
       for(const r of game.records){
+        // evaluate "effective" error per system position
         if(r.state==="good") continue;
+
+        // if everything up to repTo is patched, late cost is reduced, but still some admin overhead
+        const patchedAll = (r.localFixTo >= r.repTo && r.repTo >= 2);
+        const baseAdmin = patchedAll ? 0.25 : 0.0;
+
         const frac = (r.repTo / Math.max(1, (game.systems.length-1)));
-        lateWeightSum += 0.6 + frac*1.6;
+        const weight = (patchedAll ? (0.45 + frac*0.55) : (0.6 + frac*1.6)) + baseAdmin;
+        lateWeightSum += weight;
       }
+
       game.metrics.cost += lateWeightSum * L.costPerBadPerSec * dt;
 
+      // Score: reward quality & time, small mdm bonus
       game.metrics.score += Math.round((game.metrics.quality - 70) * 0.02);
       game.metrics.score += (game.mdm ? 1 : 0);
       game.metrics.timeSpent += dt * L.timeWeight;
@@ -626,12 +781,16 @@
       if(game.sessionOn && game.sessionState==="live"){
         game.sessionLeft = Math.max(0, game.sessionLeft - dt);
         if(game.sessionLeft <= 0){
-          game.sessionState="ended";
+          game.sessionState = "ended";
           if(!baseline.taken) snapshotBaseline();
         }
       }
     }
 
+    // =========================
+    // Movement (masters stay near origin)
+    // + "bad floats up" to be reachable
+    // =========================
     function step(dt){
       const origin = game.systems[0] || {x:game.viewport.w/2, y:game.viewport.h/2};
       const topBand = 46;
@@ -667,6 +826,9 @@
       }
     }
 
+    // =========================
+    // Drawing helpers
+    // =========================
     function roundRect(ctx, x, y, w, h, r){
       const rr = Math.min(r, w/2, h/2);
       ctx.moveTo(x+rr,y);
@@ -703,6 +865,9 @@
       ctx.fillText(line, x, yy);
     }
 
+    // =========================
+    // End card / share
+    // =========================
     function drawEndCard(){
       const W=game.viewport.w, H=game.viewport.h;
       ctx.save();
@@ -791,10 +956,14 @@
       toast("PNG gespeichert ✔️", "Share");
     }
 
+    // =========================
+    // Rendering
+    // =========================
     function draw(){
       const W=game.viewport.w, H=game.viewport.h;
       ctx.clearRect(0,0,W,H);
 
+      // subtle grid
       ctx.save();
       ctx.globalAlpha=0.08;
       ctx.strokeStyle="white";
@@ -804,6 +973,7 @@
       for(let y=0;y<H;y+=stepG){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
       ctx.restore();
 
+      // connections (system chain)
       ctx.save();
       ctx.lineWidth=3;
       for(let i=0;i<game.systems.length;i++){
@@ -820,6 +990,7 @@
       }
       ctx.restore();
 
+      // systems
       const mdmBlue = getCSS("--mdm-blue");
       for(const s of game.systems){
         ctx.save();
@@ -850,40 +1021,61 @@
         ctx.restore();
       }
 
-      // replica ghosts
+      // draw replica ghosts first + store hit hints implicitly via deterministic offsets
       ctx.save();
       for(const r of game.records){
         if(r.repTo <= 0) continue;
-        const col = (r.state==="good") ? "rgba(34,197,94,.20)"
-                  : (r.state==="bad")  ? "rgba(239,68,68,.26)"
-                  :                      "rgba(245,158,11,.24)";
-        ctx.fillStyle = col;
+
         for(let i=1;i<=r.repTo;i++){
           const s = game.systems[i];
           if(!s) continue;
+
+          const st = effectiveStateAtSys(r, i);
+          const col = (st==="good") ? "rgba(34,197,94,.22)"
+                    : (st==="bad")  ? "rgba(239,68,68,.28)"
+                    :                "rgba(245,158,11,.26)";
+
           const t = (r.jitter + i*777) * 0.001;
           const ox = Math.cos(t*1.3) * 14;
           const oy = Math.sin(t*1.1) * 10;
+
+          // if it is a local patch, show a tiny "bandage" mark
+          const patched = (r.localFixTo >= i && i>=2);
+
+          ctx.fillStyle = col;
           ctx.beginPath();
-          ctx.arc(s.x+ox, s.y+oy, 4.2, 0, Math.PI*2);
+          ctx.arc(s.x+ox, s.y+oy, patched ? 5.0 : 4.2, 0, Math.PI*2);
           ctx.fill();
+
+          if(patched){
+            ctx.strokeStyle="rgba(255,255,255,.20)";
+            ctx.lineWidth=1;
+            ctx.beginPath();
+            ctx.moveTo(s.x+ox-3.0, s.y+oy);
+            ctx.lineTo(s.x+ox+3.0, s.y+oy);
+            ctx.stroke();
+          }
         }
       }
       ctx.restore();
 
-      const order = (st)=> (st==="bad"?2:(st==="dupA"||st==="dupB")?1:0);
+      // render order: good -> dup -> bad (bad last)
+      const order = (st)=> (st==="bad"? 2 : (st==="dupA"||st==="dupB") ? 1 : 0);
       const recs = [...game.records].sort((a,b)=>order(a.state)-order(b.state));
+
       for(const r of recs){
         const col = (r.state==="good") ? "rgba(34,197,94,1)"
                   : (r.state==="bad")  ? "rgba(239,68,68,1)"
                   :                      "rgba(245,158,11,1)";
 
+        // glow
         ctx.save();
         ctx.globalAlpha = (r.state==="good") ? 0.12 : 0.20;
         ctx.fillStyle = col;
         ctx.beginPath(); ctx.arc(r.x,r.y,r.r+8,0,Math.PI*2); ctx.fill();
         ctx.restore();
 
+        // body
         ctx.save();
         ctx.fillStyle = col;
         ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,Math.PI*2); ctx.fill();
@@ -895,6 +1087,7 @@
         ctx.fillText(t, r.x, r.y+0.5);
         ctx.restore();
 
+        // dup link
         if((r.state==="dupA"||r.state==="dupB") && r.link){
           const other = game.records.find(x=>x.id===r.link);
           if(other){
@@ -907,6 +1100,65 @@
         }
       }
 
+      // Task minigame card (on top of data)
+      if(game.task && (game.sessionOn ? game.sessionState==="live" : true)){
+        const t = game.task;
+        const pad=12;
+        const w = Math.min(360, W-30);
+        const h = 148;
+        const x = clamp(t.x - w/2, 15, W-w-15);
+        const y = clamp(t.y - h/2, 70, H-h-20);
+
+        ctx.save();
+        // card
+        ctx.fillStyle="rgba(17,24,39,.92)";
+        ctx.strokeStyle="rgba(255,255,255,.16)";
+        ctx.lineWidth=1;
+        ctx.beginPath(); roundRect(ctx, x, y, w, h, 16); ctx.fill(); ctx.stroke();
+
+        // timer bar
+        const frac = clamp((game.taskUntil - now()) / 3200, 0, 1);
+        ctx.fillStyle="rgba(255,255,255,.08)";
+        ctx.beginPath(); roundRect(ctx, x+pad, y+10, w-2*pad, 8, 6); ctx.fill();
+        ctx.fillStyle=frac>0.34 ? "rgba(34,197,94,.75)" : "rgba(239,68,68,.75)";
+        ctx.beginPath(); roundRect(ctx, x+pad, y+10, (w-2*pad)*frac, 8, 6); ctx.fill();
+
+        ctx.fillStyle="rgba(255,255,255,.92)";
+        ctx.font="900 14px system-ui";
+        ctx.textAlign="left"; ctx.textBaseline="middle";
+        ctx.fillText(`${t.icon} ${t.title}`, x+pad, y+34);
+
+        ctx.fillStyle="rgba(229,231,235,.88)";
+        ctx.font="650 13px system-ui";
+        wrapText(t.prompt, x+pad, y+58, w-2*pad, 16);
+
+        // options
+        game.taskRects = [];
+        const oy = y + 92;
+        const btnW = (w-2*pad-12) / 3;
+        for(let i=0;i<3;i++){
+          const opt = t.options[i];
+          const bx = x+pad + i*(btnW+6);
+          const by = oy;
+          const bw = btnW;
+          const bh = 40;
+
+          ctx.fillStyle="rgba(255,255,255,.06)";
+          ctx.strokeStyle="rgba(255,255,255,.14)";
+          ctx.lineWidth=1;
+          ctx.beginPath(); roundRect(ctx, bx, by, bw, bh, 12); ctx.fill(); ctx.stroke();
+
+          ctx.fillStyle="rgba(255,255,255,.90)";
+          ctx.font="800 12px system-ui";
+          ctx.textAlign="center"; ctx.textBaseline="middle";
+          wrapText(opt.label, bx+10, by+bh/2, bw-20, 14);
+
+          game.taskRects.push({x:bx,y:by,w:bw,h:bh, ok:opt.ok});
+        }
+        ctx.restore();
+      }
+
+      // quality badge
       const q=game.metrics.quality;
       ctx.save();
       ctx.globalAlpha=0.92;
@@ -921,6 +1173,7 @@
       ctx.fillText(`Qualität: ${Math.round(q)}%`, W-bw, 10+bh/2);
       ctx.restore();
 
+      // system popup
       if(game.systemPopup.active && game.systemPopup.data){
         const {title,text,impact} = game.systemPopup.data;
         ctx.save();
@@ -929,7 +1182,7 @@
         ctx.strokeStyle="rgba(255,255,255,.14)";
         ctx.lineWidth=1;
 
-        const w=Math.min(340, W-40), h=140;
+        const w=Math.min(360, W-40), h=150;
         const x=clamp(game.systemPopup.x - w/2, 20, W-w-20);
         const y=clamp(game.systemPopup.y + 40, 20, H-h-20);
 
@@ -955,15 +1208,17 @@
         if(game.mdm){
           ctx.fillStyle=mdmBlue;
           ctx.font="800 12.5px system-ui";
-          ctx.fillText("MDM stoppt früh (Validierung + Golden Record).", x+14, y+118);
+          ctx.fillText("MDM stoppt früh (Validierung + Golden Record).", x+14, y+128);
         }
-
         ctx.restore();
       }
 
       if(game.sessionOn && game.sessionState==="ended") drawEndCard();
     }
 
+    // =========================
+    // Picking
+    // =========================
     function getPos(evt){
       const r = canvas.getBoundingClientRect();
       if(evt.touches && evt.touches[0]) return {x: evt.touches[0].clientX - r.left, y: evt.touches[0].clientY - r.top};
@@ -971,12 +1226,20 @@
       return {x: evt.clientX - r.left, y: evt.clientY - r.top};
     }
 
+    function hitTaskOption(p){
+      if(!game.task || !game.taskRects.length) return null;
+      for(const r of game.taskRects){
+        if(p.x>=r.x && p.x<=r.x+r.w && p.y>=r.y && p.y<=r.y+r.h) return r;
+      }
+      return null;
+    }
+
     function findRecordAt(p){
       let best=null, bestD=1e9;
       for(const r of game.records){
         const dx=r.x-p.x, dy=r.y-p.y;
         const d=Math.sqrt(dx*dx+dy*dy);
-        const extra = (r.state==="bad") ? 10 : 0;
+        const extra = (r.state==="bad") ? 10 : 0; // easier to hit bad
         if(d < r.r + 22 + extra && d < bestD){ bestD=d; best=r; }
       }
       return best;
@@ -991,20 +1254,68 @@
       return null;
     }
 
-    function fixRecord(r){
+    function findReplicaAt(p){
+      // find nearest ghost dot; returns {record, sysIdx} or null
+      let best=null, bestD=1e9;
+      for(const r of game.records){
+        if(r.repTo <= 0) continue;
+        for(let i=1;i<=r.repTo;i++){
+          const s = game.systems[i];
+          if(!s) continue;
+          const t = (r.jitter + i*777) * 0.001;
+          const ox = Math.cos(t*1.3) * 14;
+          const oy = Math.sin(t*1.1) * 10;
+          const gx = s.x+ox, gy=s.y+oy;
+          const dx=gx-p.x, dy=gy-p.y;
+          const d=Math.sqrt(dx*dx+dy*dy);
+          const hitR = 12; // easy to tap
+          if(d < hitR && d < bestD){
+            bestD=d;
+            best={record:r, sysIdx:i, gx, gy};
+          }
+        }
+      }
+      return best;
+    }
+
+    // =========================
+    // Actions
+    // =========================
+    function fixOrigin(r){
       if(!r) return;
       if(game.sessionOn && game.sessionState!=="live") return;
 
       if(r.state==="bad"){
-        r.state="good"; r.link=null;
+        r.state="good";
+        r.localFixTo=-1; // origin fix makes patches unnecessary
+        r.link=null;
         game.metrics.fixes++;
-        game.metrics.score += 35;
-        toast("Fix ✔︎ — Fehler am Ursprung bereinigt (wirkt überall).", "Fix");
+        game.metrics.score += 40;
+        toast("Fix ✔︎ — Ursprung bereinigt (wirkt in allen Systemen).", "Ursprung");
       } else if(r.state==="dupA" || r.state==="dupB"){
         toast("Orange = Dublette. Long-Press = Merge (Golden Record).", "Dubletten");
       } else {
         toast("Grün = sauber.", "OK");
       }
+    }
+
+    function localFixReplica(r, sysIdx){
+      if(!r) return;
+      if(game.sessionOn && game.sessionState!=="live") return;
+      if(sysIdx < 2) return; // early fix should happen at origin
+      if(r.state==="good") return;
+
+      // cost and score based on distance
+      const base = 160;
+      const per  = 160;
+      const spike = base + (sysIdx-1)*per * (game.mdm ? 0.65 : 1.0);
+
+      r.localFixTo = Math.max(r.localFixTo, sysIdx);
+      game.metrics.fixes++;
+      game.metrics.cost += spike;
+      game.metrics.score -= Math.round(28 + sysIdx*8);
+
+      toast(`🩹 Lokalfix in <b>${game.systems[sysIdx]?.label || ("SYS "+(sysIdx+1))}</b> — teuer, Ursprung bleibt falsch <span class="tag">+${fmtEuro(spike)}</span>`, "Folgesystem");
     }
 
     function mergeDupPair(r){
@@ -1024,7 +1335,7 @@
       game.records.splice(otherIndex,1);
 
       game.metrics.fixes += 2;
-      game.metrics.score += 60;
+      game.metrics.score += 65;
       toast("Merge 💙 — Dublette bereinigt (Golden Record).", "Merge");
       return true;
     }
@@ -1040,9 +1351,12 @@
       toast(`${info.title}: ${info.text}`, "System");
     }
 
+    // =========================
+    // Input: context-based long press (no conflicts)
+    // =========================
     let longPressTimer=null;
     let downAt=0;
-    let pressContext=null;
+    let pressContext=null; // "record" | "system" | "replica" | "task" | null
     let pressTarget=null;
 
     function onDown(evt){
@@ -1052,18 +1366,36 @@
       const p = getPos(evt);
       downAt = now();
 
-      const rec = findRecordAt(p);
-      if(rec){
-        pressContext="record";
-        pressTarget=rec;
+      // 1) Task option tap has priority
+      const opt = hitTaskOption(p);
+      if(opt){
+        pressContext="task";
+        pressTarget=opt;
+        // resolve immediately on down for snappy feel
+        resolveTask(!!opt.ok);
+        return;
+      }
+
+      // 2) Replica tap: allow local fixes
+      const rep = findReplicaAt(p);
+      if(rep){
+        pressContext="replica";
+        pressTarget=rep;
       } else {
-        const sys = findSystemAt(p);
-        if(sys){
-          pressContext="system";
-          pressTarget=sys;
+        // 3) Record > system
+        const rec = findRecordAt(p);
+        if(rec){
+          pressContext="record";
+          pressTarget=rec;
         } else {
-          pressContext=null;
-          pressTarget=null;
+          const sys = findSystemAt(p);
+          if(sys){
+            pressContext="system";
+            pressTarget=sys;
+          } else {
+            pressContext=null;
+            pressTarget=null;
+          }
         }
       }
 
@@ -1080,6 +1412,7 @@
     function onUp(evt){
       evt.preventDefault?.();
 
+      // close popup with any tap
       if(game.systemPopup.active){
         game.systemPopup.active=false;
         game.systemPopup.data=null;
@@ -1091,7 +1424,14 @@
       clearTimeout(longPressTimer);
       const held = now() - downAt;
 
-      if(held < 380 && pressContext==="record" && pressTarget) fixRecord(pressTarget);
+      // Tap behavior
+      if(held < 380){
+        if(pressContext==="record" && pressTarget){
+          fixOrigin(pressTarget);
+        } else if(pressContext==="replica" && pressTarget){
+          localFixReplica(pressTarget.record, pressTarget.sysIdx);
+        }
+      }
 
       pressContext=null;
       pressTarget=null;
@@ -1102,6 +1442,9 @@
     canvas.addEventListener("mousedown",  onDown);
     window.addEventListener("mouseup",    onUp);
 
+    // =========================
+    // UI toggles
+    // =========================
     function syncMdmUI(){
       const L = LEVELS[game.lvlIndex];
       const forced = !!L.forceMdm;
@@ -1126,6 +1469,9 @@
       el("btnDemo").textContent = `Demo: ${game.demo.on ? "On" : "Off"}`;
     }
 
+    // =========================
+    // Demo mode
+    // =========================
     function runDemo(dt){
       if(!game.demo.on) return;
 
@@ -1143,16 +1489,39 @@
         return;
       }
 
+      // Resolve tasks quickly
+      if(game.task){
+        // pick a random option; sometimes wrong to show effect
+        if(Math.random() < 0.72){
+          const ok = game.taskRects.find(x=>x.ok) || game.taskRects[0];
+          if(ok) resolveTask(true);
+        } else {
+          resolveTask(false);
+        }
+        return;
+      }
+
       game.demo.nextActionIn -= dt;
       if(game.demo.nextActionIn > 0) return;
       game.demo.nextActionIn = 0.55 + Math.random()*0.9;
 
       const bad = game.records.find(r=>r.state==="bad");
-      if(bad){ fixRecord(bad); return; }
+      if(bad){ fixOrigin(bad); return; }
+
+      // sometimes show local fix
+      const badLate = game.records.find(r=>r.state==="bad" && r.repTo>=3 && r.localFixTo<3);
+      if(badLate){
+        localFixReplica(badLate, 3);
+        return;
+      }
+
       const dup = game.records.find(r=>(r.state==="dupA"||r.state==="dupB"));
       if(dup){ mergeDupPair(dup); return; }
     }
 
+    // =========================
+    // Level init
+    // =========================
     function initLevel(idx){
       game.lvlIndex = clamp(idx, 0, LEVELS.length-1);
       const L = LEVELS[game.lvlIndex];
@@ -1167,14 +1536,17 @@
         const r = new Record(origin.x + rnd(-100,100), origin.y + rnd(-80,80));
         r.originSys = 0;
         r.repTo = 0;
+        r.localFixTo = -1;
         game.records.push(r);
       }
 
       game.sessionLeft = game.sessionLen;
       game.sessionState = "live";
 
-      game.activeTask=null;
-      game.taskTimer=0;
+      game.task=null;
+      game.taskRects=[];
+      game.taskUntil=0;
+
       game.nextImpactIn = 6.5 + Math.random()*5.5;
       game.nextEventIn  = 6.0 + Math.random()*6.0;
 
@@ -1184,9 +1556,13 @@
       el("lvlLbl").textContent = `Level ${L.id}: ${L.name}`;
       syncMdmUI(); syncSessionUI(); syncDemoUI();
       tutorialStartIfLevel1();
+
       toast(`Start: <b>${L.name}</b>`, "Go");
     }
 
+    // =========================
+    // Buttons
+    // =========================
     el("btnPrev").addEventListener("click", ()=>initLevel(game.lvlIndex-1));
     el("btnNext").addEventListener("click", ()=>initLevel(game.lvlIndex+1));
 
@@ -1194,8 +1570,12 @@
       const L = LEVELS[game.lvlIndex];
       if(L.forceMdm) return;
       game.mdm = !game.mdm;
+      // MDM removes need for local patches
+      if(game.mdm){
+        for(const r of game.records) r.localFixTo = -1;
+      }
       syncMdmUI();
-      toast(game.mdm ? "MDM aktiviert — Validierung + Dublettenbremse + weniger späte Folgen." : "MDM deaktiviert — Fehler replizieren schneller.", "MDM");
+      toast(game.mdm ? "MDM aktiviert — weniger Entstehung + bessere Verteilungskontrolle." : "MDM deaktiviert — mehr Entstehung & späte Folgen.", "MDM");
     });
 
     el("btnSession").addEventListener("click", ()=>{
@@ -1222,15 +1602,20 @@
       initLevel(game.lvlIndex);
     });
 
+    // =========================
+    // Main loop
+    // =========================
     let last = now();
     function frame(){
       const t = now();
       const dt = clamp((t-last)/1000, 0, 0.033);
       last = t;
 
+      // toast auto-hide
       const toastEl = el("toast");
       if(toastEl.classList.contains("show") && (t - game.toastAt) > 2400) toastEl.classList.remove("show");
 
+      // popup auto-hide
       if(game.systemPopup.active && t > game.systemPopup.until){
         game.systemPopup.active=false;
         game.systemPopup.data=null;
@@ -1250,6 +1635,7 @@
       requestAnimationFrame(frame);
     }
 
+    // Boot
     resize();
     initLevel(0);
     requestAnimationFrame(frame);

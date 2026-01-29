@@ -46,7 +46,7 @@
     .sub{
       color:var(--muted);
       font-size:12.5px; line-height:1.25;
-      max-width: 60ch;
+      max-width: 64ch;
     }
     .pill{
       display:inline-flex; align-items:center; gap:6px;
@@ -125,7 +125,7 @@
       background: rgba(17,24,39,.78);
       border: 1px solid rgba(255,255,255,.10);
       box-shadow: var(--shadow);
-      max-width: min(620px, calc(100% - 20px));
+      max-width: min(640px, calc(100% - 20px));
       transform: translateY(-6px);
       opacity:0;
       pointer-events:none;
@@ -167,8 +167,8 @@
           </span>
         </div>
         <div class="sub">
-          Tippen = Fix (rot) • Long-Press = Merge (orange Dubletten) • Tippe System-Kreise für Kontext.
-          Tasks lenken ab – Qualität kann im Hintergrund kippen. (No blame, solo realidad.)
+          Tippen = Fix (rot) • Long-Press auf orange = Merge • Long-Press auf System-Kreis = Kontext.  
+          Stammdaten entstehen früh, replizieren später – die teuersten Folgen kommen am Ende.
         </div>
       </div>
 
@@ -192,7 +192,7 @@
       <div class="stat">
         <div class="k">Systeme</div>
         <div class="v" id="sysVal">1</div>
-        <div class="k" style="margin-top:2px;">Verbreitung</div>
+        <div class="k" style="margin-top:2px;">Replikation</div>
         <div class="v" id="spreadVal">niedrig</div>
       </div>
       <div class="stat">
@@ -232,14 +232,16 @@
     const lerp  = (a,b,t)=>a+(b-a)*t;
     const rnd   = (a,b)=>a+Math.random()*(b-a);
     const now   = ()=>performance.now();
+    const el = (id)=>document.getElementById(id);
+
     function getCSS(varName){ return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
     function fmtEuro(n){ const v = Math.round(n); return v.toLocaleString("de-DE") + " €"; }
     function qualityColor(q){ if(q>=80) return getCSS("--good"); if(q>=55) return getCSS("--warn"); return getCSS("--bad"); }
+    function stars(n){ return "★".repeat(n) + "☆".repeat(5-n); }
 
     const canvas = document.getElementById("c");
     const stage  = document.getElementById("stage");
     const ctx    = canvas.getContext("2d", { alpha: true });
-    const el = (id)=>document.getElementById(id);
 
     const SYSTEM_LABELS = [
       ["ERP"],
@@ -250,15 +252,15 @@
     ];
 
     const SYSTEM_INFO = {
-      "ERP":     { title:"ERP",      text:"Zentrale Stammdaten für Aufträge & Rechnungen.", impact:"Falsche Daten → falsche Rechnungen, Mahnläufe, Buchungsfehler." },
-      "CRM":     { title:"CRM",      text:"Kundensicht für Vertrieb & Service.",            impact:"Dublette → Kunde wird nicht erkannt, schlechter Support." },
-      "Shop":    { title:"Shop",     text:"Bestellung & Checkout.",                         impact:"Falsche Adresse → Lieferung geht schief." },
-      "WMS":     { title:"WMS",      text:"Lager & Versand.",                               impact:"Falscher Artikel → Retouren & Zusatzkosten." },
-      "BI":      { title:"BI",       text:"Reports & KPIs.",                                impact:"Schlechte Daten → falsche Entscheidungen." },
-      "Finance": { title:"Finance",  text:"Abrechnung & Zahlung.",                          impact:"Fehler → Reklamationen & Vertrauensverlust." },
-      "Support": { title:"Support",  text:"Tickets & Servicefälle.",                        impact:"Kunde nicht auffindbar → Frust." },
-      "PIM":     { title:"PIM",      text:"Produktstammdaten.",                             impact:"Inkonsistenzen → falsche Infos im Shop." },
-      "DataLake":{ title:"Data Lake",text:"Zentrale Datenbasis.",                           impact:"Garbage in → Garbage out." }
+      "ERP":     { title:"ERP",      text:"Entstehung & Pflege von Stammdaten.", impact:"Fehler hier → replizieren überall hin." },
+      "CRM":     { title:"CRM",      text:"Kundenpflege & Service-Kontext.",      impact:"Dubletten hier → Kunde wird nicht erkannt." },
+      "Shop":    { title:"Shop",     text:"Checkout nutzt replizierte Daten.",   impact:"Falsche Adresse → Lieferung schief." },
+      "WMS":     { title:"WMS",      text:"Versand nutzt replizierte Daten.",    impact:"Falscher Artikel → Retouren & Kosten." },
+      "BI":      { title:"BI",       text:"Reports aggregieren replizierte Daten.", impact:"Falsche KPIs → falsche Entscheidungen." },
+      "Finance": { title:"Finance",  text:"Abrechnung nutzt replizierte Daten.", impact:"Falsch → Reklamationen & Vertrauensverlust." },
+      "Support": { title:"Support",  text:"Tickets brauchen saubere IDs.",       impact:"Kunde nicht auffindbar → Frust." },
+      "PIM":     { title:"PIM",      text:"Produktstammdaten als Quelle.",       impact:"Inkonsistent → falsche Infos im Shop." },
+      "DataLake":{ title:"Data Lake",text:"Zentrale Datenbasis.",               impact:"Garbage in → Garbage out." }
     };
 
     const TASKS = [
@@ -278,23 +280,24 @@
     ];
 
     const LEVELS = [
-      { id:1, name:"First Date (Tutorial)", systems:1, records:10, baseErrorRate:0.012, duplicateRate:0.000, spreadFactor:0.25, costPerBadPerSec:0.5, timeWeight:1.0 },
-      { id:2, name:"Offene Beziehung",     systems:3, records:18, baseErrorRate:0.020, duplicateRate:0.012, spreadFactor:0.65, costPerBadPerSec:1.8, timeWeight:1.15 },
-      { id:3, name:"Commitment Issues",    systems:6, records:28, baseErrorRate:0.028, duplicateRate:0.020, spreadFactor:0.95, costPerBadPerSec:3.2, timeWeight:1.35 },
-      { id:4, name:"Toxisch",              systems:9, records:40, baseErrorRate:0.034, duplicateRate:0.026, spreadFactor:1.15, costPerBadPerSec:4.6, timeWeight:1.65 },
-      { id:5, name:"True Love (MDM)",      systems:9, records:40, baseErrorRate:0.016, duplicateRate:0.006, spreadFactor:0.35, costPerBadPerSec:1.0, timeWeight:0.95, forceMdm:true }
+      { id:1, name:"First Date (Tutorial)", systems:1, records:10, baseErrorRate:0.012, duplicateRate:0.000, replRate:0.55, costPerBadPerSec:0.5, timeWeight:1.0 },
+      { id:2, name:"Offene Beziehung",     systems:3, records:18, baseErrorRate:0.020, duplicateRate:0.012, replRate:0.75, costPerBadPerSec:1.8, timeWeight:1.15 },
+      { id:3, name:"Commitment Issues",    systems:6, records:28, baseErrorRate:0.028, duplicateRate:0.020, replRate:0.85, costPerBadPerSec:3.2, timeWeight:1.35 },
+      { id:4, name:"Toxisch",              systems:9, records:40, baseErrorRate:0.034, duplicateRate:0.026, replRate:0.92, costPerBadPerSec:4.6, timeWeight:1.65 },
+      { id:5, name:"True Love (MDM)",      systems:9, records:40, baseErrorRate:0.016, duplicateRate:0.006, replRate:0.62, costPerBadPerSec:1.0, timeWeight:0.95, forceMdm:true }
     ];
 
-    class Record {
+    class Record{
       constructor(x,y){
         this.x=x; this.y=y;
-        this.vx=rnd(-20,20); this.vy=rnd(-20,20);
+        this.vx=rnd(-18,18); this.vy=rnd(-18,18);
         this.r=11;
-        this.state="good"; // good | bad | dupA | dupB
-        this.sys=0;
+        this.state="good";
+        this.originSys=0;
+        this.repTo=0;
         this.id = Math.random().toString(16).slice(2);
-        this.link = null;
-        this.jitter = rnd(0,1000);
+        this.link=null;
+        this.jitter=rnd(0,1000);
       }
     }
 
@@ -345,7 +348,6 @@
       t.classList.add("show");
       game.toastAt = now();
     }
-    function stars(n){ return "★".repeat(n) + "☆".repeat(5-n); }
 
     function resize(){
       const r = stage.getBoundingClientRect();
@@ -364,8 +366,8 @@
     function buildSystems(n){
       const W = game.viewport.w, H = game.viewport.h;
       const pad = 74;
-      const xs = [];
-      if(n===1){ xs.push(W*0.5); }
+      const xs=[];
+      if(n===1) xs.push(W*0.5);
       else for(let i=0;i<n;i++) xs.push(lerp(pad, W-pad, i/(n-1)));
 
       const yBase = H*0.33;
@@ -389,14 +391,14 @@
       const total = game.records.length || 1;
       const q = clamp(100 - (bad/total)*65 - (dup/total)*55, 0, 100);
       game.metrics.errors = bad;
-      game.metrics.dups   = Math.floor(dup/2);
-      game.metrics.quality= q;
+      game.metrics.dups = Math.floor(dup/2);
+      game.metrics.quality = q;
     }
 
-    function spreadLabel(){
+    function replLabel(){
       const L = LEVELS[game.lvlIndex];
-      const s = L.spreadFactor * (game.mdm ? 0.28 : 1.0);
-      if(s < 0.35) return "niedrig";
+      const s = L.replRate * (game.mdm ? 0.45 : 1.0);
+      if(s < 0.55) return "niedrig";
       if(s < 0.85) return "mittel";
       return "hoch";
     }
@@ -405,6 +407,7 @@
       computeQuality();
       const m = game.metrics;
       const q = m.quality;
+
       el("qVal").textContent = String(Math.round(q));
       const bar = el("qBar");
       bar.style.width = `${q}%`;
@@ -415,9 +418,10 @@
       el("errVal").textContent = String(m.errors);
       el("dupVal").textContent = String(m.dups);
       el("fixVal").textContent = String(m.fixes);
-      el("costVal").textContent= fmtEuro(m.cost);
-      el("timeVal").textContent= m.timeSpent.toFixed(1);
-      el("spreadVal").textContent= spreadLabel();
+      el("costVal").textContent = fmtEuro(m.cost);
+      el("timeVal").textContent = m.timeSpent.toFixed(1);
+      el("spreadVal").textContent = replLabel();
+
       el("scoreVal").textContent = String(Math.round(m.score));
       el("statusVal").textContent = game.sessionOn ? game.sessionState : "free";
       if(game.sessionOn) el("timerLbl").textContent = `${Math.ceil(game.sessionLeft)}s`;
@@ -425,10 +429,10 @@
 
     function tutorialStartIfLevel1(){
       const L = LEVELS[game.lvlIndex];
-      if(L.id !== 1){ game.tutorial.active = false; return; }
-      game.tutorial.active = true;
-      game.tutorial.step = 0;
-      game.tutorialImpactDone = false;
+      if(L.id !== 1){ game.tutorial.active=false; return; }
+      game.tutorial.active=true;
+      game.tutorial.step=0;
+      game.tutorialImpactDone=false;
       toast("Ein ganz normaler Arbeitstag.", "Tutorial");
     }
 
@@ -436,28 +440,28 @@
       if(!game.tutorial.active) return;
       switch(game.tutorial.step){
         case 0:
-          game.records.forEach((r,i)=>{ r.state = (i===0 ? "bad" : "good"); r.link=null; });
-          toast("Du pflegst Stammdaten sorgfältig. Tippe rot zum Fix.", "Tutorial");
-          game.tutorial.step = 1;
+          game.records.forEach((r,i)=>{ r.state=(i===0?"bad":"good"); r.link=null; r.repTo=0; });
+          toast("Du pflegst Stammdaten. Tippe rot zum Fix.", "Tutorial");
+          game.tutorial.step=1;
           break;
         case 1:
-          if(game.metrics.errors === 0){
-            toast("Gut gemacht ✔️", "Tutorial");
-            game.tutorial.step = 2;
+          if(game.metrics.errors===0){
+            toast("Gut ✔️ Jetzt läuft die Replikation an …", "Tutorial");
+            game.tutorial.step=2;
           }
           break;
         case 2:
-          toast("Währenddessen passieren andere Dinge …", "Tutorial");
-          game.tutorial.step = 3;
+          toast("Währenddessen poppen Tasks auf – nicht jeder kann immer alles prüfen.", "Tutorial");
+          game.tutorial.step=3;
           break;
         case 3:
           if(game.activeTask){
             if(!game.tutorialImpactDone){
-              game.tutorialImpactDone = true;
+              game.tutorialImpactDone=true;
               triggerImpact("Tutorial");
             }
-            toast("Nicht Unachtsamkeit – Realität. Systeme helfen, wenn Menschen busy sind.", "Tutorial");
-            game.tutorial.active = false;
+            toast("Merksatz: Fehler entstehen früh. Folgen werden spät teuer.", "Tutorial");
+            game.tutorial.active=false;
           }
           break;
       }
@@ -474,15 +478,30 @@
       const damp = game.mdm ? 0.35 : 1.0;
       const imp = IMPACTS[(Math.random()*IMPACTS.length)|0];
       const spike = (imp.cost[0] + Math.random()*(imp.cost[1]-imp.cost[0])) * damp;
+
       game.metrics.cost += spike;
       game.metrics.score += Math.round(imp.score * damp);
 
-      const extra = game.mdm ? 0 : 1;
-      for(let i=0;i<extra;i++){
+      if(!game.mdm && Math.random() < 0.45){
         const r = game.records.find(x=>x.state==="good");
         if(r) r.state="bad";
       }
+
       toast(`${stars(imp.stars)} <b>${imp.text}</b> <span class="tag">${imp.area}</span> <span class="tag">+${fmtEuro(spike)}</span>`, reasonTag || "Impact");
+    }
+
+    function lateExposureSignal(){
+      const L = LEVELS[game.lvlIndex];
+      const last = Math.max(0, L.systems-1);
+      const lateThreshold = Math.max(2, Math.floor(last * 0.7));
+      let bad=0, dup=0;
+      for(const r of game.records){
+        if(r.repTo >= lateThreshold){
+          if(r.state==="bad") bad++;
+          if(r.state==="dupA"||r.state==="dupB") dup++;
+        }
+      }
+      return { badLate: bad, dupLate: dup, lateThreshold };
     }
 
     function maybePropagationEvent(dt){
@@ -491,18 +510,13 @@
       if(game.nextEventIn > 0) return;
 
       const L = LEVELS[game.lvlIndex];
-      const lateSystems = Math.max(1, Math.floor(L.systems * 0.45));
-      const thresholdSys = Math.max(1, L.systems - lateSystems);
-
-      const badLate = game.records.filter(r => r.state==="bad" && r.sys >= thresholdSys).length;
-      const dupLate = game.records.filter(r => (r.state==="dupA"||r.state==="dupB") && r.sys >= thresholdSys).length;
-
+      const { badLate, dupLate } = lateExposureSignal();
       if(badLate + dupLate === 0){
         game.nextEventIn = 4.0 + Math.random()*6.0;
         return;
       }
 
-      const sev = clamp((badLate*1.0 + dupLate*1.2) / 6.0, 0.3, 2.2);
+      const sev = clamp((badLate*1.0 + dupLate*1.2)/6.0, 0.3, 2.2);
       const baseSpike = 220 * sev * (1 + (L.systems/4));
       const spike = baseSpike * (game.mdm ? 0.35 : 1.0);
 
@@ -510,7 +524,7 @@
       game.metrics.score -= Math.round(spike * 0.15);
 
       const what = (Math.random()<0.5) ? "Rechnungslauf" : "Versand/CRM";
-      toast(`⚠️ Incident in <b>${what}</b>: falsche Daten im Spät-System → <b>${fmtEuro(spike)}</b> Extra-Kosten.`, "Propagation");
+      toast(`⚠️ Incident in <b>${what}</b>: replizierte Fehler schlagen durch → <b>${fmtEuro(spike)}</b> Extra-Kosten.`, "Propagation");
 
       game.nextEventIn = 8.0 + Math.random()*8.0;
     }
@@ -520,20 +534,15 @@
       game.nextImpactIn -= dt;
       if(game.nextImpactIn > 0) return;
 
-      const L = LEVELS[game.lvlIndex];
-      const lateSystems = Math.max(1, Math.floor(L.systems * 0.40));
-      const thresholdSys = Math.max(1, L.systems - lateSystems);
-
-      const badLate = game.records.filter(r => r.state==="bad" && r.sys >= thresholdSys).length;
-      const dupLate = game.records.filter(r => (r.state==="dupA"||r.state==="dupB") && r.sys >= thresholdSys).length;
-
-      const taskBoost  = game.activeTask ? 0.25 : 0.0;
+      const { badLate, dupLate } = lateExposureSignal();
       const lateSignal = clamp((badLate*1.0 + dupLate*1.2) / 6.0, 0, 1);
+      const taskBoost  = game.activeTask ? 0.25 : 0.0;
 
-      if(lateSignal > 0.18 || game.activeTask){
-        const p = clamp(0.20 + lateSignal*0.70 + taskBoost, 0, 0.95);
+      if(lateSignal > 0.12 || game.activeTask){
+        const p = clamp(0.18 + lateSignal*0.75 + taskBoost, 0, 0.95);
         if(Math.random() < p) triggerImpact(game.activeTask ? "Task→Impact" : "Late→Impact");
       }
+
       game.nextImpactIn = (game.mdm ? 10.5 : 7.5) + Math.random() * (game.mdm ? 9 : 7);
     }
 
@@ -546,7 +555,6 @@
       if(game.activeTask){
         game.taskTimer -= dt;
         taskFactor = 1.35;
-
         const penalty = game.mdm ? 0.004 : 0.012;
         if(Math.random() < penalty){
           const r = game.records.find(x=>x.state==="good");
@@ -557,49 +565,56 @@
 
       const errRate = L.baseErrorRate * (game.mdm ? 0.30 : 1.0) * taskFactor;
       const dupRate = L.duplicateRate * (game.mdm ? 0.22 : 1.0) * taskFactor;
-      const spread  = L.spreadFactor * (game.mdm ? 0.28 : 1.0) * (game.activeTask ? 1.15 : 1.0);
+      const replRate = L.replRate * (game.mdm ? 0.45 : 1.0) * (game.activeTask ? 1.10 : 1.0);
 
       for(const r of game.records){
-        const advanceProb = (0.12 + (r.state!=="good" ? 0.09 : 0.0)) * dt;
-        if(r.sys < game.systems.length-1 && Math.random() < advanceProb) r.sys++;
+        const early = (r.repTo <= 1);
 
-        if(r.state==="good" && Math.random() < errRate * dt) r.state="bad";
+        const advanceProb = replRate * 0.16 * dt;
+        if(r.repTo < game.systems.length-1 && Math.random() < advanceProb) r.repTo++;
 
-        if(r.state==="good" && L.systems>=2 && Math.random() < dupRate * dt){
+        if(r.state==="good"){
+          const pErr = early ? errRate : errRate * 0.12;
+          if(Math.random() < pErr * dt) r.state="bad";
+        }
+
+        if(r.state==="good" && early && L.systems>=2 && Math.random() < dupRate * dt){
           const a = r;
           const b = new Record(a.x + rnd(-22,22), a.y + rnd(-22,22));
-          b.sys = a.sys;
-          a.state = "dupA"; b.state = "dupB";
-          a.link = b.id; b.link = a.id;
+          b.originSys = a.originSys;
+          b.repTo = a.repTo;
+          a.state="dupA"; b.state="dupB";
+          a.link=b.id; b.link=a.id;
           game.records.push(b);
         }
       }
 
       const infectors = game.records.filter(r => r.state!=="good");
       if(infectors.length){
-        const attempts = Math.min(42, infectors.length);
+        const attempts = Math.min(40, infectors.length);
         for(let i=0;i<attempts;i++){
           const src = infectors[(Math.random()*infectors.length)|0];
           const cand = game.records[(Math.random()*game.records.length)|0];
           if(!cand || cand.state!=="good") continue;
+          if(cand.repTo > 1) continue;
 
           const dx = cand.x - src.x, dy = cand.y - src.y;
           const dist2 = dx*dx + dy*dy;
-
-          const sysFactor = (cand.sys / Math.max(1, (game.systems.length-1))) * 0.9 + 0.1;
-          const radius = 85 + sysFactor*110;
-          const p = spread * sysFactor * dt * (dist2 < radius*radius ? 0.55 : 0.14);
-
+          const radius = 120;
+          const p = 0.06 * dt * (dist2 < radius*radius ? 0.9 : 0.2) * (game.mdm ? 0.45 : 1.0);
           if(Math.random() < p) cand.state="bad";
         }
       }
 
       computeQuality();
 
-      const bad  = game.metrics.errors;
-      const dups = game.metrics.dups;
-      const chaos = (bad*1.05 + dups*1.8);
-      game.metrics.cost += chaos * L.costPerBadPerSec * dt;
+      let lateWeightSum = 0;
+      for(const r of game.records){
+        if(r.state==="good") continue;
+        const frac = (r.repTo / Math.max(1, (game.systems.length-1)));
+        lateWeightSum += 0.6 + frac*1.6;
+      }
+      game.metrics.cost += lateWeightSum * L.costPerBadPerSec * dt;
 
       game.metrics.score += Math.round((game.metrics.quality - 70) * 0.02);
       game.metrics.score += (game.mdm ? 1 : 0);
@@ -618,22 +633,26 @@
     }
 
     function step(dt){
+      const origin = game.systems[0] || {x:game.viewport.w/2, y:game.viewport.h/2};
+      const topBand = 46;
+
       for(const r of game.records){
-        const node = game.systems[r.sys] || {x:game.viewport.w/2, y:game.viewport.h/2};
-
-        r.vx += rnd(-8,8) * dt;
-        r.vy += rnd(-8,8) * dt;
-
         const t = (now() + r.jitter) * 0.001;
-        const ox = Math.cos(t*1.5) * 18;
-        const oy = Math.sin(t*1.2) * 14;
+        const ox = Math.cos(t*1.5) * 48;
+        const oy = Math.sin(t*1.2) * 38;
 
-        const ax = (node.x+ox - r.x) * 0.8;
-        const ay = (node.y+oy - r.y) * 0.8;
-        r.vx += ax * dt; r.vy += ay * dt;
+        r.vx += rnd(-10,10) * dt;
+        r.vy += rnd(-10,10) * dt;
 
-        r.vx *= (1 - 0.75*dt);
-        r.vy *= (1 - 0.75*dt);
+        const ax = (origin.x+ox - r.x) * 1.0;
+        const ay = (origin.y+oy - r.y) * 1.0;
+        r.vx += ax * dt;
+        r.vy += ay * dt;
+
+        if(r.state==="bad") r.vy -= 42 * dt;
+
+        r.vx *= (1 - 0.78*dt);
+        r.vy *= (1 - 0.78*dt);
 
         r.x += r.vx * dt;
         r.y += r.vy * dt;
@@ -643,6 +662,8 @@
         if(r.y < pad){ r.y=pad; r.vy*=-0.6; }
         if(r.x > game.viewport.w-pad){ r.x=game.viewport.w-pad; r.vx*=-0.6; }
         if(r.y > game.viewport.h-pad){ r.y=game.viewport.h-pad; r.vy*=-0.6; }
+
+        if(r.state==="bad" && r.y < topBand) r.y = topBand;
       }
     }
 
@@ -657,7 +678,7 @@
     }
     function drawHeart(x,y,s,stroke){
       ctx.save();
-      ctx.strokeStyle = stroke; ctx.lineWidth=2;
+      ctx.strokeStyle = stroke; ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.bezierCurveTo(x - s, y - s, x - 2*s, y + s/2, x, y + 2*s);
@@ -667,10 +688,8 @@
     }
     function wrapText(text, x, y, maxWidth, lineHeight){
       const words = String(text).split(" ");
-      let line = "";
-      let yy = y;
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
+      let line="", yy=y;
+      ctx.textAlign="left"; ctx.textBaseline="middle";
       for(let n=0;n<words.length;n++){
         const testLine = line + words[n] + " ";
         if(ctx.measureText(testLine).width > maxWidth && n>0){
@@ -685,13 +704,13 @@
     }
 
     function drawEndCard(){
-      const W = game.viewport.w, H = game.viewport.h;
+      const W=game.viewport.w, H=game.viewport.h;
       ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,.45)";
+      ctx.fillStyle="rgba(0,0,0,.45)";
       ctx.fillRect(0,0,W,H);
 
-      const pw = Math.min(560, W-26), ph = 260;
-      const px = (W-pw)/2, py=(H-ph)/2;
+      const pw = Math.min(560, W-26), ph=260;
+      const px=(W-pw)/2, py=(H-ph)/2;
 
       ctx.fillStyle="rgba(17,24,39,.92)";
       ctx.strokeStyle="rgba(255,255,255,.14)";
@@ -751,11 +770,31 @@
       ctx.restore();
     }
 
+    async function shareCanvasPNG(){
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 1.0));
+      if(!blob){ toast("Export fehlgeschlagen.", "Share"); return; }
+      const file = new File([blob], "love-your-data.png", { type:"image/png" });
+
+      if(navigator.canShare && navigator.canShare({ files:[file] })){
+        try{
+          await navigator.share({ files:[file], title:"Love your Data – Ergebnis", text:"Stammdatenqualität spielerisch erklärt." });
+          toast("Geteilt ✔️", "Share");
+          return;
+        }catch(e){}
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href=url; a.download="love-your-data.png";
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      toast("PNG gespeichert ✔️", "Share");
+    }
+
     function draw(){
-      const W = game.viewport.w, H = game.viewport.h;
+      const W=game.viewport.w, H=game.viewport.h;
       ctx.clearRect(0,0,W,H);
 
-      // grid
       ctx.save();
       ctx.globalAlpha=0.08;
       ctx.strokeStyle="white";
@@ -765,7 +804,6 @@
       for(let y=0;y<H;y+=stepG){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
       ctx.restore();
 
-      // connections
       ctx.save();
       ctx.lineWidth=3;
       for(let i=0;i<game.systems.length;i++){
@@ -782,7 +820,6 @@
       }
       ctx.restore();
 
-      // systems
       const mdmBlue = getCSS("--mdm-blue");
       for(const s of game.systems){
         ctx.save();
@@ -798,20 +835,51 @@
           ctx.beginPath(); ctx.arc(s.x,s.y,s.r+12,0,Math.PI*2); ctx.stroke();
           ctx.globalAlpha=1;
         }
+
         ctx.globalAlpha=0.92;
         ctx.fillStyle="rgba(255,255,255,.86)";
         ctx.font="900 13px system-ui";
         ctx.textAlign="center"; ctx.textBaseline="middle";
         ctx.fillText(s.label, s.x, s.y-0.5);
+
+        ctx.globalAlpha=0.7;
+        ctx.font="800 10.5px system-ui";
+        const tag = (s.idx<=1) ? "Quelle" : "Nutzung";
+        ctx.fillText(tag, s.x, s.y+18);
+
         ctx.restore();
       }
 
-      // records
+      // replica ghosts
+      ctx.save();
       for(const r of game.records){
-        const col = (r.state==="good") ? "rgba(34,197,94,1)" : (r.state==="bad") ? "rgba(239,68,68,1)" : "rgba(245,158,11,1)";
+        if(r.repTo <= 0) continue;
+        const col = (r.state==="good") ? "rgba(34,197,94,.20)"
+                  : (r.state==="bad")  ? "rgba(239,68,68,.26)"
+                  :                      "rgba(245,158,11,.24)";
+        ctx.fillStyle = col;
+        for(let i=1;i<=r.repTo;i++){
+          const s = game.systems[i];
+          if(!s) continue;
+          const t = (r.jitter + i*777) * 0.001;
+          const ox = Math.cos(t*1.3) * 14;
+          const oy = Math.sin(t*1.1) * 10;
+          ctx.beginPath();
+          ctx.arc(s.x+ox, s.y+oy, 4.2, 0, Math.PI*2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+
+      const order = (st)=> (st==="bad"?2:(st==="dupA"||st==="dupB")?1:0);
+      const recs = [...game.records].sort((a,b)=>order(a.state)-order(b.state));
+      for(const r of recs){
+        const col = (r.state==="good") ? "rgba(34,197,94,1)"
+                  : (r.state==="bad")  ? "rgba(239,68,68,1)"
+                  :                      "rgba(245,158,11,1)";
 
         ctx.save();
-        ctx.globalAlpha = (r.state==="good") ? 0.12 : 0.18;
+        ctx.globalAlpha = (r.state==="good") ? 0.12 : 0.20;
         ctx.fillStyle = col;
         ctx.beginPath(); ctx.arc(r.x,r.y,r.r+8,0,Math.PI*2); ctx.fill();
         ctx.restore();
@@ -833,13 +901,12 @@
             ctx.save();
             ctx.strokeStyle="rgba(245,158,11,.22)";
             ctx.lineWidth=2;
-            ctx.beginPath(); ctx.moveTo(r.x,r.y); ctx.lineTo(other.x, other.y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(r.x,r.y); ctx.lineTo(other.x,other.y); ctx.stroke();
             ctx.restore();
           }
         }
       }
 
-      // quality badge
       const q=game.metrics.quality;
       ctx.save();
       ctx.globalAlpha=0.92;
@@ -854,7 +921,6 @@
       ctx.fillText(`Qualität: ${Math.round(q)}%`, W-bw, 10+bh/2);
       ctx.restore();
 
-      // system popup
       if(game.systemPopup.active && game.systemPopup.data){
         const {title,text,impact} = game.systemPopup.data;
         ctx.save();
@@ -869,7 +935,8 @@
 
         ctx.beginPath(); roundRect(ctx,x,y,w,h,14); ctx.fill(); ctx.stroke();
 
-        ctx.fillStyle="white"; ctx.font="900 14px system-ui";
+        ctx.fillStyle="white";
+        ctx.font="900 14px system-ui";
         ctx.textAlign="left"; ctx.textBaseline="middle";
         ctx.fillText(title, x+14, y+24);
 
@@ -888,8 +955,9 @@
         if(game.mdm){
           ctx.fillStyle=mdmBlue;
           ctx.font="800 12.5px system-ui";
-          ctx.fillText("MDM fängt hier ab.", x+14, y+118);
+          ctx.fillText("MDM stoppt früh (Validierung + Golden Record).", x+14, y+118);
         }
+
         ctx.restore();
       }
 
@@ -908,10 +976,12 @@
       for(const r of game.records){
         const dx=r.x-p.x, dy=r.y-p.y;
         const d=Math.sqrt(dx*dx+dy*dy);
-        if(d < r.r + 22 && d < bestD){ bestD=d; best=r; }
+        const extra = (r.state==="bad") ? 10 : 0;
+        if(d < r.r + 22 + extra && d < bestD){ bestD=d; best=r; }
       }
       return best;
     }
+
     function findSystemAt(p){
       for(const s of game.systems){
         const dx=p.x-s.x, dy=p.y-s.y;
@@ -929,11 +999,11 @@
         r.state="good"; r.link=null;
         game.metrics.fixes++;
         game.metrics.score += 35;
-        toast("Fix ✔︎ — Rot (Fehler) korrigiert, bevor es weiter propagiert.", "Fix");
+        toast("Fix ✔︎ — Fehler am Ursprung bereinigt (wirkt überall).", "Fix");
       } else if(r.state==="dupA" || r.state==="dupB"){
         toast("Orange = Dublette. Long-Press = Merge (Golden Record).", "Dubletten");
       } else {
-        toast("Grün = sauber 🙂", "OK");
+        toast("Grün = sauber.", "OK");
       }
     }
 
@@ -959,8 +1029,21 @@
       return true;
     }
 
+    function openSystemPopup(sys){
+      const info = SYSTEM_INFO[sys.label];
+      if(!info) return;
+      game.systemPopup.active=true;
+      game.systemPopup.x=sys.x;
+      game.systemPopup.y=sys.y;
+      game.systemPopup.data=info;
+      game.systemPopup.until=now()+4500;
+      toast(`${info.title}: ${info.text}`, "System");
+    }
+
     let longPressTimer=null;
     let downAt=0;
+    let pressContext=null;
+    let pressTarget=null;
 
     function onDown(evt){
       evt.preventDefault?.();
@@ -969,26 +1052,28 @@
       const p = getPos(evt);
       downAt = now();
 
-      // system tap -> open popup and consume
-      const sys = findSystemAt(p);
-      if(sys){
-        const info = SYSTEM_INFO[sys.label];
-        if(info){
-          game.systemPopup.active=true;
-          game.systemPopup.x=sys.x; game.systemPopup.y=sys.y;
-          game.systemPopup.data=info;
-          game.systemPopup.until=now()+4000;
-          toast(`${info.title}: ${info.text}`, "System");
-          clearTimeout(longPressTimer);
-          return;
+      const rec = findRecordAt(p);
+      if(rec){
+        pressContext="record";
+        pressTarget=rec;
+      } else {
+        const sys = findSystemAt(p);
+        if(sys){
+          pressContext="system";
+          pressTarget=sys;
+        } else {
+          pressContext=null;
+          pressTarget=null;
         }
       }
 
       clearTimeout(longPressTimer);
-      longPressTimer=setTimeout(()=>{
-        const r=findRecordAt(p);
-        if(r && (r.state==="dupA"||r.state==="dupB")) mergeDupPair(r);
-        else toast("Long-Press ist fürs Dubletten-Merge (orange).", "Info");
+      longPressTimer = setTimeout(()=>{
+        if(pressContext==="record"){
+          if(pressTarget && (pressTarget.state==="dupA"||pressTarget.state==="dupB")) mergeDupPair(pressTarget);
+        } else if(pressContext==="system"){
+          if(pressTarget) openSystemPopup(pressTarget);
+        }
       }, 420);
     }
 
@@ -1005,38 +1090,17 @@
 
       clearTimeout(longPressTimer);
       const held = now() - downAt;
-      if(held < 380){
-        const p = getPos(evt);
-        const r = findRecordAt(p);
-        fixRecord(r);
-      }
+
+      if(held < 380 && pressContext==="record" && pressTarget) fixRecord(pressTarget);
+
+      pressContext=null;
+      pressTarget=null;
     }
 
     canvas.addEventListener("touchstart", onDown, {passive:false});
-    canvas.addEventListener("touchend", onUp, {passive:false});
-    canvas.addEventListener("mousedown", onDown);
-    window.addEventListener("mouseup", onUp);
-
-    async function shareCanvasPNG(){
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 1.0));
-      if(!blob){ toast("Export fehlgeschlagen.", "Share"); return; }
-      const file = new File([blob], "love-your-data.png", { type:"image/png" });
-
-      if(navigator.canShare && navigator.canShare({ files:[file] })){
-        try{
-          await navigator.share({ files:[file], title:"Love your Data – Ergebnis", text:"Stammdatenqualität spielerisch erklärt 💙" });
-          toast("Geteilt ✔️", "Share");
-          return;
-        }catch(e){}
-      }
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href=url; a.download="love-your-data.png";
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
-      toast("PNG gespeichert ✔️", "Share");
-    }
+    canvas.addEventListener("touchend",   onUp,   {passive:false});
+    canvas.addEventListener("mousedown",  onDown);
+    window.addEventListener("mouseup",    onUp);
 
     function syncMdmUI(){
       const L = LEVELS[game.lvlIndex];
@@ -1098,17 +1162,19 @@
       game.records = [];
       game.systems = buildSystems(L.systems);
 
-      const s0 = game.systems[0] || {x:game.viewport.w/2, y:game.viewport.h/2};
+      const origin = game.systems[0] || {x:game.viewport.w/2, y:game.viewport.h/2};
       for(let i=0;i<L.records;i++){
-        const r = new Record(s0.x + rnd(-90,90), s0.y + rnd(-70,70));
-        r.sys=0;
+        const r = new Record(origin.x + rnd(-100,100), origin.y + rnd(-80,80));
+        r.originSys = 0;
+        r.repTo = 0;
         game.records.push(r);
       }
 
       game.sessionLeft = game.sessionLen;
       game.sessionState = "live";
 
-      game.activeTask=null; game.taskTimer=0;
+      game.activeTask=null;
+      game.taskTimer=0;
       game.nextImpactIn = 6.5 + Math.random()*5.5;
       game.nextEventIn  = 6.0 + Math.random()*6.0;
 
@@ -1123,25 +1189,30 @@
 
     el("btnPrev").addEventListener("click", ()=>initLevel(game.lvlIndex-1));
     el("btnNext").addEventListener("click", ()=>initLevel(game.lvlIndex+1));
+
     el("btnMdm").addEventListener("click", ()=>{
       const L = LEVELS[game.lvlIndex];
       if(L.forceMdm) return;
       game.mdm = !game.mdm;
       syncMdmUI();
-      toast(game.mdm ? "MDM aktiviert 💙 — weniger Incidents/Reviews." : "MDM deaktiviert — jetzt wird’s schneller teuer 😅", "MDM");
+      toast(game.mdm ? "MDM aktiviert — Validierung + Dublettenbremse + weniger späte Folgen." : "MDM deaktiviert — Fehler replizieren schneller.", "MDM");
     });
+
     el("btnSession").addEventListener("click", ()=>{
       game.sessionOn = !game.sessionOn;
       syncSessionUI();
       toast(game.sessionOn ? "Session-Modus: 120s Challenge" : "Freies Spiel (ohne Timer)", "Session");
       initLevel(game.lvlIndex);
     });
+
     el("btnDemo").addEventListener("click", ()=>{
       game.demo.on = !game.demo.on;
       syncDemoUI();
       toast(game.demo.on ? "Auto-Demo aktiv (Messe-Modus)" : "Auto-Demo aus", "Demo");
     });
+
     el("btnShare").addEventListener("click", ()=>shareCanvasPNG());
+
     el("btnReset").addEventListener("click", ()=>{
       if(baseline.taken){
         const L = LEVELS[game.lvlIndex];
@@ -1173,7 +1244,6 @@
       }
 
       runDemo(dt);
-
       draw();
       updateHUD();
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Love your Data 💙 – Complete v7</title>
+  <title>Love your Data 💙 – Complete v8</title>
   <style>
     :root{
       --bg:#0b0f17;
@@ -449,6 +449,19 @@
       return r.state;
     }
 
+
+    function incidentSignal(){
+      // incidents should be driven by actually *used* faulty data in downstream systems
+      let badLate=0, dupLate=0;
+      for(const r of game.records){
+        if(r.repTo >= 2){
+          if(r.state==="bad") badLate++;
+          if(r.state==="dupA" || r.state==="dupB") dupLate++;
+        }
+      }
+      return { badLate, dupLate, late: badLate + dupLate };
+    }
+
     function computeQuality(){
       // quality should reflect "real world": upstream truth is what matters most, but patched late helps a bit
       let bad=0, dup=0, patched=0, mapped=0;
@@ -649,68 +662,78 @@
     function maybePropagationEvent(dt){
       const L = LEVELS[game.lvlIndex];
       if(!L.incidents) return;
-      if(L.systems < 2) return;
       if(game.sessionOn && game.sessionState!=="live") return;
-      if(game.mdm && Math.random() < 0.88){
-        // with MDM, downstream incidents are rare
-        game.nextEventIn = Math.max(game.nextEventIn, 6.0);
-        return;
-      }
+
+      // Signal gating: no faulty downstream usage -> no incidents.
+      const sig = incidentSignal();
+      if(sig.late <= 0) return;
+
+      // Quality damping: the cleaner the data, the rarer incidents.
+      const q = computeQuality();
+      const qualityDamp = clamp((100 - q) / 40, 0, 1); // 100->0, 60->1
+
+      // With MDM and decent quality: incidents are exception.
+      if(game.mdm && q > 85) return;
 
       game.nextEventIn -= dt;
       if(game.nextEventIn > 0) return;
 
-      const { badLate, dupLate } = lateExposureSignal();
-      if(badLate + dupLate === 0){
-        game.nextEventIn = 4.0 + Math.random()*6.0;
-        return;
-      }
+      // Base interval depends on MDM + current signal
+      const lateFactor = clamp(sig.late / Math.max(10, game.records.length*0.12), 0.2, 1.0);
+      const mdmMul = game.mdm ? 1.9 : 1.0;
+      game.nextEventIn = (8.5 + Math.random()*8.0) * mdmMul * (1.2 - 0.5*lateFactor);
 
-      const sev = clamp((badLate*1.0 + dupLate*1.2)/6.0, 0.3, 2.2);
-      const baseSpike = 220 * sev * (1 + (L.systems/4));
-      const spike = baseSpike * (game.mdm ? 0.35 : 1.0);
+      // Probability to actually fire now
+      const p = clamp((0.18 + lateFactor*0.45) * qualityDamp * (game.mdm ? 0.22 : 1.0), 0, 0.75);
+      if(Math.random() > p) return;
 
-      game.metrics.cost += spike;
-      game.metrics.score -= Math.round(spike * 0.15);
+      // Pick a system focus
+      const sysIdx = 2 + ((Math.random() * Math.max(1, game.systems.length-2))|0);
+      const sys = game.systems[sysIdx];
+      const isDup = (sig.dupLate > sig.badLate) && (Math.random() < 0.6);
+      const kind = isDup ? "Dublette" : "Fehler";
 
-      const what = (Math.random()<0.5) ? "Rechnungslauf" : "Versand/CRM";
-      toast(`⚠️ Incident in <b>${what}</b>: replizierte Fehler schlagen durch → <b>${fmtEuro(spike)}</b> Extra-Kosten.`, "Incident");
+      const cost = Math.round((120 + Math.random()*220) * (game.mdm ? 0.55 : 1.0) * (0.8 + lateFactor*0.6));
+      game.metrics.cost += cost;
+      game.metrics.score -= Math.round((45 + lateFactor*35) * (game.mdm ? 0.55 : 1.0));
 
-      game.nextEventIn = 8.0 + Math.random()*8.0;
+      toast(`⚠️ Incident in <b>${sys?.label || "Folgesystem"}</b> — ${kind} wird genutzt <span class="tag">+${fmtEuro(cost)}</span>`, "Incident");
     }
 
     function maybeImpact(dt){
       const L = LEVELS[game.lvlIndex];
-      if(!L.incidents) return;
-      if(L.systems < 2) return;
+      if(!L.impacts) return;
       if(game.sessionOn && game.sessionState!=="live") return;
-      if(game.mdm && Math.random() < 0.85){
-        game.nextImpactIn = Math.max(game.nextImpactIn, 7.0);
-        return;
-      }
+
+      const sig = incidentSignal();
+      if(sig.late <= 0) return;
+
+      const q = computeQuality();
+      const qualityDamp = clamp((100 - q) / 40, 0, 1);
+
+      if(game.mdm && q > 85) return;
 
       game.nextImpactIn -= dt;
       if(game.nextImpactIn > 0) return;
 
-      const { badLate, dupLate } = lateExposureSignal();
-      const lateSignal = clamp((badLate*1.0 + dupLate*1.2) / 6.0, 0, 1);
-      const taskBoost  = game.task ? 0.25 : 0.0;
+      // schedule next check
+      const lateFactor = clamp(sig.late / Math.max(10, game.records.length*0.12), 0.2, 1.0);
+      const mdmMul = game.mdm ? 2.0 : 1.0;
+      game.nextImpactIn = (10.5 + Math.random()*10.0) * mdmMul * (1.25 - 0.55*lateFactor);
 
-      if(lateSignal > 0.12 || game.task){
-        const p = clamp((0.16 + lateSignal*0.75 + taskBoost) * (game.mdm ? 0.25 : 1.0), 0, 0.95);
-        if(Math.random() < p){
-          const damp = game.mdm ? 0.35 : 1.0;
-          const useDup = (dupLate > badLate) && (Math.random() < 0.75);
-          const pool = useDup ? IMPACTS_DUP : IMPACTS;
-          const imp = pool[(Math.random()*pool.length)|0];
-          const spike = (imp.cost[0] + Math.random()*(imp.cost[1]-imp.cost[0])) * damp;
-          game.metrics.cost += spike;
-          game.metrics.score += Math.round(imp.score * damp);
-          toast(`${stars(imp.stars)} <b>${imp.text}</b> <span class="tag">${imp.area}</span> <span class="tag">+${fmtEuro(spike)}</span>`, game.task ? "Task→Impact" : "Late→Impact");
-        }
-      }
+      const taskBoost = game.task ? 0.08 : 0;
+      const p = clamp((0.12 + lateFactor*0.55 + taskBoost) * qualityDamp * (game.mdm ? 0.22 : 1.0), 0, 0.85);
+      if(Math.random() > p) return;
 
-      game.nextImpactIn = (game.mdm ? 12.0 : 9.5) + Math.random() * (game.mdm ? 10 : 8);
+      const useDup = (sig.dupLate > sig.badLate) && (Math.random() < 0.75);
+      const pool = useDup ? IMPACTS_DUP : IMPACTS;
+      const imp = pool[(Math.random()*pool.length)|0];
+
+      const cost = Math.round((imp.cost[0] + Math.random()*(imp.cost[1]-imp.cost[0])) * (game.mdm ? 0.55 : 1.0));
+      game.metrics.cost += cost;
+      game.metrics.score += imp.score * (game.mdm ? 0.55 : 1.0);
+
+      toast(`★${imp.stars} ${imp.text} <span class="tag">+${fmtEuro(cost)}</span>`, imp.area);
     }
 
     // =========================
@@ -1741,6 +1764,21 @@
 
       if(!(game.sessionOn && game.sessionState==="ended")){
         spreadTick(dt);
+      // Positive feedback when data stays clean
+      const sig = incidentSignal();
+      if(sig.late===0){
+        game.cleanTime += dt;
+      } else {
+        game.cleanTime = 0;
+      }
+      if(game.cleanTime > game.nextCleanToast && game.cleanTime > 8){
+        game.nextCleanToast = game.cleanTime + 14.0 + Math.random()*8.0;
+        if(game.mdm){
+          toast("✅ Ruhiger Betrieb: saubere Stammdaten, kaum Support.", "MDM");
+        } else {
+          toast("✅ Alles ruhig: saubere Daten zahlen sich aus.", "Qualität");
+        }
+      }
         step(dt);
       }
 

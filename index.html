@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Love your Data 💙 – Complete v4</title>
+  <title>Love your Data 💙 – Complete v5</title>
   <style>
     :root{
       --bg:#0b0f17;
@@ -167,7 +167,7 @@
           </span>
         </div>
         <div class="sub">
-          Tippen rot am Ursprung = Fix • Tippen auf Replikat (Ghost) = teurer Lokalfix • Long-Press auf orange = Merge • Long-Press auf System-Kreis = Kontext.
+          Fixe rote Fehler und merge Dubletten. MDM macht’s leichter.
         </div>
       </div>
 
@@ -270,6 +270,9 @@
       "PIM":     { title:"PIM",      text:"Produktstammdaten als Quelle.",       impact:"Inkonsistent → falsche Infos im Shop." },
       "DataLake":{ title:"Data Lake",text:"Zentrale Datenbasis.",               impact:"Garbage in → Garbage out." }
     };
+
+    const TASK_DURATION_MS = 4000;
+    const DEMO_TASK_DURATION_MS = 3000;
 
     const TASK_BANK = [
       {
@@ -553,7 +556,7 @@
       // In Level 1: allow tutorial task. In others: random
       if(!force){
         // probability tuned for not-too-annoying
-        const p = (game.mdm ? 0.05 : 0.085);
+        const p = (game.mdm ? 0.035 : 0.055);
         if(Math.random() > p) return;
         // avoid spawning if chaos is already high
         if(game.metrics.quality < 35 && Math.random() < 0.6) return;
@@ -571,7 +574,7 @@
         x: rnd(game.viewport.w*0.32, game.viewport.w*0.68),
         y: rnd(game.viewport.h*0.48, game.viewport.h*0.78),
       };
-      game.taskUntil = now() + 3200;
+      game.taskUntil = now() + (game.demo.on ? DEMO_TASK_DURATION_MS : TASK_DURATION_MS);
       game.taskRects = [];
     }
 
@@ -582,11 +585,11 @@
         toast(`Task erledigt ✔︎ — Fokus zurück auf Stammdaten.`, "Task");
       } else {
         // penalty: short burst of background decay / replication boost
-        game.metrics.score -= 45;
-        game.metrics.cost += 120 + (LEVELS[game.lvlIndex].systems*30);
+        game.metrics.score -= 30;
+        game.metrics.cost += 80 + (LEVELS[game.lvlIndex].systems*18);
         toast(`Task schief gelaufen — Datenqualität leidet im Hintergrund.`, "Task");
         // inject 1-2 new upstream errors to simulate distraction
-        const n = 1 + (Math.random()<0.35 ? 1 : 0);
+        const n = 1 + (Math.random()<0.20 ? 1 : 0);
         for(let i=0;i<n;i++){
           const r = game.records.find(x=>x.state==="good" && x.repTo<=1);
           if(r) r.state="bad";
@@ -684,7 +687,7 @@
         }
       }
 
-      game.nextImpactIn = (game.mdm ? 10.5 : 7.5) + Math.random() * (game.mdm ? 9 : 7);
+      game.nextImpactIn = (game.mdm ? 12.0 : 9.5) + Math.random() * (game.mdm ? 10 : 8);
     }
 
     // =========================
@@ -694,7 +697,7 @@
       const L = LEVELS[game.lvlIndex];
 
       // spawn minigame tasks (even in level 1, but lower)
-      if(!game.task && (L.id===1 ? Math.random()<dt*0.06 : true)) spawnTask(false);
+      if(!game.task && (L.id===1 ? Math.random()<dt*0.04 : true)) spawnTask(false);
 
       // task timeouts
       if(game.task && now() > game.taskUntil){
@@ -702,7 +705,7 @@
       }
 
       // Distraction factor: while task is active, more decay + more replication
-      const taskFactor = game.task ? 1.55 : 1.0;
+      const taskFactor = game.task ? 1.28 : 1.0;
 
       // "Entstehung" stark früh, Replikation überall
       const errRate  = L.baseErrorRate * (game.mdm ? 0.30 : 1.0) * taskFactor;
@@ -1154,7 +1157,7 @@
         ctx.beginPath(); roundRect(ctx, x, y, w, h, 16); ctx.fill(); ctx.stroke();
 
         // timer bar
-        const frac = clamp((game.taskUntil - now()) / 3200, 0, 1);
+        const frac = clamp((game.taskUntil - now()) / (game.demo.on ? DEMO_TASK_DURATION_MS : TASK_DURATION_MS), 0, 1);
         ctx.fillStyle="rgba(255,255,255,.08)";
         ctx.beginPath(); roundRect(ctx, x+pad, y+10, w-2*pad, 8, 6); ctx.fill();
         ctx.fillStyle=frac>0.34 ? "rgba(34,197,94,.75)" : "rgba(239,68,68,.75)";
@@ -1541,7 +1544,7 @@
           initLevel(game.lvlIndex);
 
           game.demo.autoRestartIn = 2.2 + Math.random()*1.5;
-          game.demo.nextActionIn  = 0.9 + Math.random()*0.8;
+          game.demo.nextActionIn  = 1.2 + Math.random()*0.8;
         }
         return;
       }
@@ -1605,8 +1608,8 @@
       game.taskRects=[];
       game.taskUntil=0;
 
-      game.nextImpactIn = 6.5 + Math.random()*5.5;
-      game.nextEventIn  = 6.0 + Math.random()*6.0;
+      game.nextImpactIn = 8.0 + Math.random()*6.5;
+      game.nextEventIn  = 7.5 + Math.random()*7.0;
 
       game.systemPopup.active=false;
       game.systemPopup.data=null;
@@ -1671,7 +1674,7 @@
 
       // toast auto-hide
       const toastEl = el("toast");
-      if(toastEl.classList.contains("show") && (t - game.toastAt) > 2400) toastEl.classList.remove("show");
+      if(toastEl.classList.contains("show") && (t - game.toastAt) > 3200) toastEl.classList.remove("show");
 
       // popup auto-hide
       if(game.systemPopup.active && t > game.systemPopup.until){

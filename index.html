@@ -3,79 +3,150 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Love your Data 💙 – Mini Game</title>
+  <title>Love your Data 💙 – Complete</title>
   <style>
     :root{
       --bg:#0b0f17;
-      --panel:#111827cc;
-      --panel2:#0f172acc;
       --text:#e5e7eb;
       --muted:#9ca3af;
       --good:#22c55e;
       --warn:#f59e0b;
       --bad:#ef4444;
-
-      /* NTT DATA "Future Blue" */
       --mdm-blue:#6485c1;
-
       --shadow: 0 10px 30px rgba(0,0,0,.35);
       --radius:16px;
     }
     *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
-    html,body{height:100%; margin:0; background: radial-gradient(1200px 800px at 50% 0%, #111a2e 0%, var(--bg) 55%); color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";}
-    .wrap{height:100%; display:flex; flex-direction:column; padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom) 12px; gap:10px; max-width:980px; margin:0 auto;}
-    header{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; background: linear-gradient(180deg, rgba(17,24,39,.72), rgba(17,24,39,.45)); border:1px solid rgba(255,255,255,.08); border-radius: var(--radius); box-shadow: var(--shadow);}
-    .brand{display:flex; flex-direction:column; gap:2px; min-width:0;}
-    .brand .t{font-weight:700; letter-spacing:.2px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
-    .pill{display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); font-size:12px; color: var(--muted); white-space:nowrap;}
-    .pill .dot{width:8px; height:8px; border-radius:99px; background: var(--warn); box-shadow:0 0 0 3px rgba(245,158,11,.15);}
-    .pill.mdm{color:#e7eefc; border-color: rgba(100,133,193,.45); background: rgba(100,133,193,.16);}
-    .pill.mdm .dot{background: var(--mdm-blue); box-shadow:0 0 0 3px rgba(100,133,193,.22);}
+    html,body{
+      height:100%; margin:0;
+      background: radial-gradient(1200px 800px at 50% 0%, #111a2e 0%, var(--bg) 55%);
+      color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    .wrap{
+      height:100%;
+      display:flex; flex-direction:column;
+      padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom) 12px;
+      gap:10px;
+      max-width: 980px; margin:0 auto;
+    }
+    header{
+      display:flex; align-items:flex-start; justify-content:space-between;
+      gap:10px; padding:10px 12px;
+      background: linear-gradient(180deg, rgba(17,24,39,.72), rgba(17,24,39,.45));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .brand{display:flex; flex-direction:column; gap:4px; min-width:0;}
+    .brand .t{
+      font-weight:800; letter-spacing:.2px;
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    }
+    .sub{
+      color:var(--muted);
+      font-size:12.5px; line-height:1.25;
+      max-width: 60ch;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 10px; border-radius:999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+      font-size:12px; color: var(--muted);
+      white-space:nowrap;
+    }
+    .pill .dot{
+      width:8px; height:8px; border-radius:99px;
+      background: var(--warn);
+      box-shadow: 0 0 0 3px rgba(245,158,11,.15);
+    }
+    .pill.mdm{
+      color:#e7eefc;
+      border-color: rgba(100,133,193,.45);
+      background: rgba(100,133,193,.16);
+    }
+    .pill.mdm .dot{
+      background: var(--mdm-blue);
+      box-shadow: 0 0 0 3px rgba(100,133,193,.22);
+    }
     .actions{display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
-    button{appearance:none; border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06); color: var(--text); padding:10px 12px; border-radius: 14px; font-weight:650; font-size:14px; line-height:1; cursor:pointer; box-shadow: 0 8px 18px rgba(0,0,0,.25); transition: transform .06s ease, background .2s ease, border-color .2s ease; user-select:none;}
+    button{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding:10px 12px;
+      border-radius: 14px;
+      font-weight:700;
+      font-size:14px; line-height:1;
+      cursor:pointer;
+      box-shadow: 0 8px 18px rgba(0,0,0,.25);
+      transition: transform .06s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
+      user-select:none;
+    }
     button:active{transform: translateY(1px) scale(.99);}
     button.primary{border-color: rgba(100,133,193,.6); background: rgba(100,133,193,.18);}
     button.danger{border-color: rgba(239,68,68,.55); background: rgba(239,68,68,.14);}
     button.ghost{border-color: rgba(255,255,255,.10); background: rgba(255,255,255,.04);}
-
-    .hud{display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap:8px; padding:10px 12px; background: linear-gradient(180deg, rgba(15,23,42,.72), rgba(15,23,42,.35)); border:1px solid rgba(255,255,255,.08); border-radius: var(--radius); box-shadow: var(--shadow);}
+    .hud{
+      display:grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap:8px;
+      padding:10px 12px;
+      background: linear-gradient(180deg, rgba(15,23,42,.72), rgba(15,23,42,.35));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
     .stat{display:flex; flex-direction:column; gap:4px; min-width:0;}
     .stat .k{font-size:12px; color: var(--muted);}
-    .stat .v{font-size:16px; font-weight:750; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .stat .v{font-size:16px; font-weight:850; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
     .bar{height:8px; border-radius:999px; background: rgba(255,255,255,.08); overflow:hidden; border:1px solid rgba(255,255,255,.08);}
     .bar > i{display:block; height:100%; width:50%; background: var(--good); transition: width .2s ease;}
-
-    .stage{position:relative; overflow:hidden; border-radius: var(--radius); border:1px solid rgba(255,255,255,.08); background: radial-gradient(900px 700px at 50% 30%, rgba(100,133,193,.16) 0%, rgba(0,0,0,0) 60%), linear-gradient(180deg, rgba(17,24,39,.55), rgba(3,7,18,.72)); box-shadow: var(--shadow); min-height: 360px; flex:1;}
-    canvas{width:100%; height:100%; display:block;}
-
-    .toast{position:absolute; top:10px; left:10px; padding:10px 12px; border-radius:14px; background: rgba(17,24,39,.74); border:1px solid rgba(255,255,255,.10); box-shadow: var(--shadow); max-width: min(560px, calc(100% - 20px)); transform: translateY(-6px); opacity:0; pointer-events:none; transition: opacity .25s ease, transform .25s ease; backdrop-filter: blur(10px); font-size:14px; line-height:1.25;}
-    .toast.show{opacity:1; transform: translateY(0px);}
-    .toast b{font-weight:800;}
-    .toast .tag{display:inline-flex; align-items:center; gap:6px; margin-left:8px; padding:3px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06); font-size:12px; color: var(--muted);}
-
-    .legend{
-      position:absolute; right:10px; bottom:10px;
-      padding:10px 12px;
-      background: rgba(17,24,39,.62);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:14px;
-      backdrop-filter: blur(10px);
-      font-size:12.5px;
-      color: #d1d5db;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      max-width: min(340px, calc(100% - 20px));
+    .stage{
+      position:relative;
+      overflow:hidden;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.08);
+      background:
+        radial-gradient(900px 700px at 50% 30%, rgba(100,133,193,.16) 0%, rgba(0,0,0,0) 60%),
+        linear-gradient(180deg, rgba(17,24,39,.55), rgba(3,7,18,.72));
+      box-shadow: var(--shadow);
+      min-height: 360px;
+      flex:1;
     }
-    .legend .row{display:flex; align-items:center; gap:10px;}
-    .sw{width:12px; height:12px; border-radius:99px; box-shadow: 0 0 0 3px rgba(255,255,255,.06);}
-    .sw.g{background: var(--good); box-shadow:0 0 0 3px rgba(34,197,94,.15);}
-    .sw.o{background: var(--warn); box-shadow:0 0 0 3px rgba(245,158,11,.18);}
-    .sw.r{background: var(--bad); box-shadow:0 0 0 3px rgba(239,68,68,.18);}
-    .sw.b{background: var(--mdm-blue); box-shadow:0 0 0 3px rgba(100,133,193,.20);}
-    .legend b{font-weight:800;}
-    .legend small{color: var(--muted); line-height:1.25;}
-
+    canvas{width:100%; height:100%; display:block;}
+    .toast{
+      position:absolute;
+      top:10px; left:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      background: rgba(17,24,39,.78);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      max-width: min(620px, calc(100% - 20px));
+      transform: translateY(-6px);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .25s ease, transform .25s ease;
+      backdrop-filter: blur(10px);
+      font-size:14px;
+      line-height:1.25;
+    }
+    .toast.show{opacity:1; transform: translateY(0px);}
+    .toast b{font-weight:900;}
+    .toast .tag{
+      display:inline-flex; align-items:center; gap:6px;
+      margin-left:8px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-size: 12px;
+      color: var(--muted);
+      white-space:nowrap;
+    }
     @media (min-width: 820px){
       header{padding:12px 14px;}
       .stage{min-height: 520px;}
@@ -90,17 +161,24 @@
           Love your Data
           <span class="pill"><span class="dot"></span><span id="lvlLbl">Level 1</span></span>
           <span id="mdmPill" class="pill mdm" style="display:none;"><span class="dot"></span>MDM aktiv</span>
-          <span class="pill" id="timerPill"><span class="dot" style="background:rgba(255,255,255,.25); box-shadow:0 0 0 3px rgba(255,255,255,.08)"></span><span id="timerLbl">120s</span></span>
+          <span id="timerPill" class="pill" style="display:none;">
+            <span class="dot" style="background:rgba(255,255,255,.25); box-shadow:0 0 0 3px rgba(255,255,255,.08)"></span>
+            <span id="timerLbl">120s</span>
+          </span>
         </div>
-        <div style="color:var(--muted); font-size:12.5px; line-height:1.2;">
-          Tippen = Fix (rot) • Long-Press = Merge (orange Dubletten) • Ziel: Verbreitung stoppen, bevor’s 💔 wird.
+        <div class="sub">
+          Tippen = Fix (rot) • Long-Press = Merge (orange Dubletten) • Tippe System-Kreise für Kontext.
+          Tasks lenken ab – Qualität kann im Hintergrund kippen. (No blame, solo realidad.)
         </div>
       </div>
+
       <div class="actions">
         <button id="btnPrev">◀︎</button>
         <button id="btnNext" class="primary">Next ▶︎</button>
         <button id="btnMdm" class="primary">MDM: Off</button>
         <button id="btnSession" class="ghost">Session: On</button>
+        <button id="btnDemo" class="ghost">Demo: Off</button>
+        <button id="btnShare" class="primary">Share</button>
         <button id="btnReset" class="danger">Reset</button>
       </div>
     </header>
@@ -146,97 +224,71 @@
     <div class="stage" id="stage">
       <canvas id="c"></canvas>
       <div class="toast" id="toast"></div>
-
-      <div class="legend">
-        <div class="row"><span class="sw g"></span><div><b>Grün</b>: sauber / valid</div></div>
-        <div class="row"><span class="sw r"></span><div><b>Rot</b>: Fehler (z. B. fehlendes Feld, Tippfehler) → propagiert</div></div>
-        <div class="row"><span class="sw o"></span><div><b>Orange</b>: Dublette-Paar → Long-Press zum Merge (Golden Record)</div></div>
-        <div class="row"><span class="sw b"></span><div><b>Future Blue</b>: MDM aktiv (Validierung + Dublettenbremse)</div></div>
-        <small>System-Kreise zeigen: wo Daten genutzt werden (ERP/CRM/Shop/BI/…). Später im Fluss = teurer.</small>
-      </div>
     </div>
   </div>
 
   <script>
-    // ===== Utilities =====
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-    const lerp = (a,b,t)=>a+(b-a)*t;
-    const rnd = (a,b)=>a+Math.random()*(b-a);
-    const now = ()=>performance.now();
+    const lerp  = (a,b,t)=>a+(b-a)*t;
+    const rnd   = (a,b)=>a+Math.random()*(b-a);
+    const now   = ()=>performance.now();
+    function getCSS(varName){ return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
+    function fmtEuro(n){ const v = Math.round(n); return v.toLocaleString("de-DE") + " €"; }
+    function qualityColor(q){ if(q>=80) return getCSS("--good"); if(q>=55) return getCSS("--warn"); return getCSS("--bad"); }
 
-    function fmtEuro(n){
-      const v = Math.round(n);
-      return v.toLocaleString("de-DE") + " €";
-    }
-    function getCSS(varName){
-      return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-    }
-    function qualityColor(q){
-      if(q>=80) return getCSS("--good");
-      if(q>=55) return getCSS("--warn");
-      return getCSS("--bad");
-    }
-
-    // ===== Canvas =====
     const canvas = document.getElementById("c");
-    const stage = document.getElementById("stage");
-    const ctx = canvas.getContext("2d", { alpha: true });
+    const stage  = document.getElementById("stage");
+    const ctx    = canvas.getContext("2d", { alpha: true });
+    const el = (id)=>document.getElementById(id);
 
-    // ===== Content: system labels (simple, plausible) =====
     const SYSTEM_LABELS = [
       ["ERP"],
       ["ERP","CRM","Shop"],
-      ["ERP","CRM","Shop","WMS","BI","MDM?"],
+      ["ERP","CRM","Shop","WMS","BI","Finance"],
       ["ERP","CRM","Shop","WMS","BI","Support","Finance","PIM","DataLake"],
       ["ERP","CRM","Shop","WMS","BI","Support","Finance","PIM","DataLake"]
     ];
 
-    // ===== Levels =====
-    const LEVELS = [
-      {
-        id: 1, name: "First Date",
-        systems: 1, records: 10,
-        baseErrorRate: 0.012, duplicateRate: 0.000,
-        spreadFactor: 0.25,
-        costPerBadPerSec: 0.5, timeWeight: 1.0,
-      },
-      {
-        id: 2, name: "Offene Beziehung",
-        systems: 3, records: 18,
-        baseErrorRate: 0.020, duplicateRate: 0.012,
-        spreadFactor: 0.65,
-        costPerBadPerSec: 1.8, timeWeight: 1.15,
-      },
-      {
-        id: 3, name: "Commitment Issues",
-        systems: 6, records: 28,
-        baseErrorRate: 0.028, duplicateRate: 0.020,
-        spreadFactor: 0.95,
-        costPerBadPerSec: 3.2, timeWeight: 1.35,
-      },
-      {
-        id: 4, name: "Toxisch",
-        systems: 9, records: 40,
-        baseErrorRate: 0.034, duplicateRate: 0.026,
-        spreadFactor: 1.15,
-        costPerBadPerSec: 4.6, timeWeight: 1.65,
-      },
-      {
-        id: 5, name: "True Love (MDM)",
-        systems: 9, records: 40,
-        baseErrorRate: 0.016, duplicateRate: 0.006,
-        spreadFactor: 0.35,
-        costPerBadPerSec: 1.0, timeWeight: 0.95,
-        forceMdm: true
-      }
+    const SYSTEM_INFO = {
+      "ERP":     { title:"ERP",      text:"Zentrale Stammdaten für Aufträge & Rechnungen.", impact:"Falsche Daten → falsche Rechnungen, Mahnläufe, Buchungsfehler." },
+      "CRM":     { title:"CRM",      text:"Kundensicht für Vertrieb & Service.",            impact:"Dublette → Kunde wird nicht erkannt, schlechter Support." },
+      "Shop":    { title:"Shop",     text:"Bestellung & Checkout.",                         impact:"Falsche Adresse → Lieferung geht schief." },
+      "WMS":     { title:"WMS",      text:"Lager & Versand.",                               impact:"Falscher Artikel → Retouren & Zusatzkosten." },
+      "BI":      { title:"BI",       text:"Reports & KPIs.",                                impact:"Schlechte Daten → falsche Entscheidungen." },
+      "Finance": { title:"Finance",  text:"Abrechnung & Zahlung.",                          impact:"Fehler → Reklamationen & Vertrauensverlust." },
+      "Support": { title:"Support",  text:"Tickets & Servicefälle.",                        impact:"Kunde nicht auffindbar → Frust." },
+      "PIM":     { title:"PIM",      text:"Produktstammdaten.",                             impact:"Inkonsistenzen → falsche Infos im Shop." },
+      "DataLake":{ title:"Data Lake",text:"Zentrale Datenbasis.",                           impact:"Garbage in → Garbage out." }
+    };
+
+    const TASKS = [
+      { icon: "📞", text: "Anruf vom Kundenservice" },
+      { icon: "📧", text: "Eilige Mail vom Vertrieb" },
+      { icon: "📦", text: "Versandproblem klären" },
+      { icon: "💬", text: "Rückfrage aus der Buchhaltung" }
     ];
 
-    // ===== Entities =====
+    const IMPACTS = [
+      { stars: 1, text: "Bestellung nie angekommen.", area: "Versand",       cost: [350, 900],  score: -120 },
+      { stars: 2, text: "Rechnung falsch – muss ich wieder hinterherlaufen?", area:"Finance",   cost: [220, 700],  score: -90 },
+      { stars: 1, text: "Adresse war korrekt – warum an Nachbarn geliefert?", area:"CRM/Ship", cost: [280, 1100], score: -140 },
+      { stars: 2, text: "Doppelter Kundenstamm: Support findet mich nicht.",  area:"Support",  cost: [180, 650],  score: -80 },
+      { stars: 1, text: "Retouren-Chaos wegen falscher Artikelstammdaten.",   area:"Shop/WMS", cost: [300, 1300], score: -150 },
+      { stars: 3, text: "Lieferung verspätet, Status stimmt nicht.",          area:"Tracking", cost: [120, 420],  score: -45 }
+    ];
+
+    const LEVELS = [
+      { id:1, name:"First Date (Tutorial)", systems:1, records:10, baseErrorRate:0.012, duplicateRate:0.000, spreadFactor:0.25, costPerBadPerSec:0.5, timeWeight:1.0 },
+      { id:2, name:"Offene Beziehung",     systems:3, records:18, baseErrorRate:0.020, duplicateRate:0.012, spreadFactor:0.65, costPerBadPerSec:1.8, timeWeight:1.15 },
+      { id:3, name:"Commitment Issues",    systems:6, records:28, baseErrorRate:0.028, duplicateRate:0.020, spreadFactor:0.95, costPerBadPerSec:3.2, timeWeight:1.35 },
+      { id:4, name:"Toxisch",              systems:9, records:40, baseErrorRate:0.034, duplicateRate:0.026, spreadFactor:1.15, costPerBadPerSec:4.6, timeWeight:1.65 },
+      { id:5, name:"True Love (MDM)",      systems:9, records:40, baseErrorRate:0.016, duplicateRate:0.006, spreadFactor:0.35, costPerBadPerSec:1.0, timeWeight:0.95, forceMdm:true }
+    ];
+
     class Record {
       constructor(x,y){
         this.x=x; this.y=y;
-        this.vx=rnd(-20,20);
-        this.vy=rnd(-20,20);
+        this.vx=rnd(-20,20); this.vy=rnd(-20,20);
         this.r=11;
         this.state="good"; // good | bad | dupA | dupB
         this.sys=0;
@@ -248,27 +300,52 @@
 
     const game = {
       viewport:{w:0,h:0},
+      dpr:1,
       lvlIndex:0,
       mdm:false,
       systems:[],
       records:[],
-      dpr:1,
       metrics:{quality:100, errors:0, dups:0, fixes:0, cost:0, timeSpent:0, score:0},
-      input:{down:false, downAt:0, downPos:{x:0,y:0}},
-      toastAt:0,
 
-      // Session (Short Mode)
       sessionOn:true,
       sessionLen:120.0,
       sessionLeft:120.0,
-      sessionState:"live", // live | ended
-      endShown:false,
+      sessionState:"live",
 
-      // Propagation events
-      lastEventAt:0,
-      nextEventIn: 8.0,
-      eventCooldown: 4.5,
+      demo:{ on:false, nextActionIn:1.0, autoRestartIn:2.2 },
+
+      tutorial:{ active:false, step:0 },
+      tutorialImpactDone:false,
+
+      activeTask:null,
+      taskTimer:0,
+
+      nextImpactIn:7.5,
+      nextEventIn:7.0,
+
+      systemPopup:{ active:false, x:0, y:0, data:null, until:0 },
+
+      toastAt:0
     };
+
+    let baseline = { taken:false, mdmState:false, quality:0, cost:0, score:0 };
+    function snapshotBaseline(){
+      baseline = {
+        taken:true,
+        mdmState: game.mdm,
+        quality: Math.round(game.metrics.quality),
+        cost: Math.round(game.metrics.cost),
+        score: Math.round(game.metrics.score)
+      };
+    }
+
+    function toast(html, tag){
+      const t = el("toast");
+      t.innerHTML = html + (tag ? `<span class="tag">${tag}</span>` : "");
+      t.classList.add("show");
+      game.toastAt = now();
+    }
+    function stars(n){ return "★".repeat(n) + "☆".repeat(5-n); }
 
     function resize(){
       const r = stage.getBoundingClientRect();
@@ -292,80 +369,15 @@
       else for(let i=0;i<n;i++) xs.push(lerp(pad, W-pad, i/(n-1)));
 
       const yBase = H*0.33;
-      const yAmp = Math.min(110, H*0.18);
-
-      // Larger circles, smart scaling:
+      const yAmp  = Math.min(110, H*0.18);
       const baseR = clamp(Math.min(46, Math.max(34, W*0.055)), 34, 46);
 
       const labels = (SYSTEM_LABELS[game.lvlIndex] || []).slice(0,n);
-      const nodes = xs.map((x,i)=>{
+      return xs.map((x,i)=>{
         const phase = (i/(Math.max(1,n-1))) * Math.PI * 1.2;
         const y = yBase + Math.sin(phase) * yAmp;
-        return {
-          x, y,
-          r: baseR,
-          idx:i,
-          label: labels[i] || ("SYS " + (i+1))
-        };
+        return { x, y, r: baseR, idx:i, label: labels[i] || ("SYS "+(i+1)) };
       });
-      return nodes;
-    }
-
-    function initLevel(idx){
-      game.lvlIndex = clamp(idx, 0, LEVELS.length-1);
-      const L = LEVELS[game.lvlIndex];
-
-      if(L.forceMdm) game.mdm = true;
-
-      game.metrics = {quality:100, errors:0, dups:0, fixes:0, cost:0, timeSpent:0, score:0};
-      game.records = [];
-      game.systems = buildSystems(L.systems);
-
-      const s0 = game.systems[0] || {x:game.viewport.w/2, y:game.viewport.h/2};
-      for(let i=0;i<L.records;i++){
-        const r = new Record(s0.x + rnd(-90,90), s0.y + rnd(-70,70));
-        r.sys = 0;
-        game.records.push(r);
-      }
-
-      // Session reset
-      game.sessionLeft = game.sessionLen;
-      game.sessionState = "live";
-      game.endShown = false;
-
-      // Event timers reset
-      game.lastEventAt = 0;
-      game.nextEventIn = 6 + Math.random()*6;
-
-      // UI labels
-      document.getElementById("lvlLbl").textContent = `Level ${L.id}: ${L.name}`;
-      document.getElementById("sysVal").textContent = String(L.systems);
-      document.getElementById("recVal").textContent = String(L.records);
-      syncMdmUI();
-      syncSessionUI();
-      toast(`Start: <b>${L.name}</b> <span class="tag">Rot=Fehler</span><span class="tag">Orange=Dublette</span>`);
-    }
-
-    function syncMdmUI(){
-      const btn = document.getElementById("btnMdm");
-      const pill = document.getElementById("mdmPill");
-      const L = LEVELS[game.lvlIndex];
-      const forced = !!L.forceMdm;
-
-      if(game.mdm){
-        btn.textContent = forced ? "MDM: On (locked)" : "MDM: On";
-        pill.style.display = "inline-flex";
-      } else {
-        btn.textContent = "MDM: Off";
-        pill.style.display = "none";
-      }
-      btn.disabled = forced;
-      btn.style.opacity = forced ? 0.6 : 1;
-    }
-
-    function syncSessionUI(){
-      document.getElementById("btnSession").textContent = `Session: ${game.sessionOn ? "On" : "Off"}`;
-      document.getElementById("timerPill").style.display = game.sessionOn ? "inline-flex" : "none";
     }
 
     function computeQuality(){
@@ -377,472 +389,10 @@
       const total = game.records.length || 1;
       const q = clamp(100 - (bad/total)*65 - (dup/total)*55, 0, 100);
       game.metrics.errors = bad;
-      game.metrics.dups = Math.floor(dup/2);
-      game.metrics.quality = q;
+      game.metrics.dups   = Math.floor(dup/2);
+      game.metrics.quality= q;
     }
 
-    // ===== Propagation Events (1) =====
-    function maybeEvent(dt){
-      if(game.sessionState !== "live") return;
-
-      game.nextEventIn -= dt;
-      if(game.nextEventIn > 0) return;
-
-      // Cooldown
-      const tNow = game.metrics.timeSpent;
-      if((tNow - game.lastEventAt) < game.eventCooldown){
-        game.nextEventIn = 1.0 + Math.random()*2.0;
-        return;
-      }
-
-      const L = LEVELS[game.lvlIndex];
-      const lateSystems = Math.max(1, Math.floor(L.systems * 0.45));
-      const thresholdSys = Math.max(1, L.systems - lateSystems);
-
-      // If bad data already reached later systems, trigger a visible "process incident"
-      const badLate = game.records.filter(r => r.state==="bad" && r.sys >= thresholdSys).length;
-      const dupLate = game.records.filter(r => (r.state==="dupA"||r.state==="dupB") && r.sys >= thresholdSys).length;
-
-      if(badLate + dupLate === 0){
-        // No incident yet -> schedule later
-        game.nextEventIn = 4.0 + Math.random()*6.0;
-        return;
-      }
-
-      // Incident severity scales with late bad/dup
-      const sev = clamp((badLate*1.0 + dupLate*1.2) / 6.0, 0.3, 2.2);
-      const baseSpike = 220 * sev * (1 + (L.systems/4));
-      const spike = baseSpike * (game.mdm ? 0.35 : 1.0); // MDM dampens incidents strongly
-
-      game.metrics.cost += spike;
-
-      // Score penalty: late incidents hurt
-      game.metrics.score -= Math.round(spike * 0.15);
-
-      // Visual toast
-      const what = (Math.random()<0.5) ? "Rechnungslauf" : "Versand/CRM";
-      toast(`⚠️ Incident in <b>${what}</b>: falsche Daten im Spät-System → <b>${fmtEuro(spike)}</b> Extra-Kosten.`, "Propagation");
-
-      game.lastEventAt = tNow;
-      game.nextEventIn = 8.0 + Math.random()*8.0;
-    }
-
-    function spreadTick(dt){
-      const L = LEVELS[game.lvlIndex];
-      const mdm = game.mdm;
-
-      // Stronger MDM effect (requested)
-      const errRate = L.baseErrorRate * (mdm ? 0.30 : 1.0);
-      const dupRate = L.duplicateRate * (mdm ? 0.22 : 1.0);
-      const spread = L.spreadFactor * (mdm ? 0.28 : 1.0);
-
-      // Advance records into later systems (integration/usage)
-      for(const r of game.records){
-        const advanceProb = (0.12 + (r.state!=="good" ? 0.09 : 0.0)) * dt;
-        if(r.sys < game.systems.length-1 && Math.random() < advanceProb) r.sys++;
-
-        // Become bad
-        if(r.state==="good" && Math.random() < errRate * dt){
-          r.state = "bad";
-        }
-
-        // Duplicate pair
-        if(r.state==="good" && L.systems>=2 && Math.random() < dupRate * dt){
-          const a = r;
-          const b = new Record(a.x + rnd(-22,22), a.y + rnd(-22,22));
-          b.sys = a.sys;
-          a.state = "dupA";
-          b.state = "dupB";
-          a.link = b.id;
-          b.link = a.id;
-          game.records.push(b);
-        }
-      }
-
-      // Propagation / infection
-      const infectors = game.records.filter(r => r.state!=="good");
-      if(infectors.length){
-        const attempts = Math.min(42, infectors.length);
-        for(let i=0;i<attempts;i++){
-          const src = infectors[(Math.random()*infectors.length)|0];
-          const cand = game.records[(Math.random()*game.records.length)|0];
-          if(!cand || cand.state!=="good") continue;
-
-          const dx = cand.x - src.x;
-          const dy = cand.y - src.y;
-          const dist2 = dx*dx + dy*dy;
-
-          const sysFactor = (cand.sys / Math.max(1, (game.systems.length-1))) * 0.9 + 0.1;
-          const radius = 85 + sysFactor*110;
-          const p = spread * sysFactor * dt * (dist2 < radius*radius ? 0.55 : 0.14);
-
-          if(Math.random() < p){
-            cand.state = "bad";
-          }
-        }
-      }
-
-      computeQuality();
-
-      // Cost accumulation (more obvious)
-      const bad = game.metrics.errors;
-      const dups = game.metrics.dups;
-      const chaos = (bad*1.05 + dups*1.8);
-      game.metrics.cost += chaos * L.costPerBadPerSec * dt;
-
-      // Score: reward quality and fixes, punish cost + chaos
-      game.metrics.score += Math.round((game.metrics.quality - 70) * 0.02);
-      game.metrics.score += (mdm ? 1 : 0);
-
-      game.metrics.timeSpent += dt * L.timeWeight;
-
-      // Events
-      maybeEvent(dt);
-
-      // Session countdown
-      if(game.sessionOn && game.sessionState==="live"){
-        game.sessionLeft = Math.max(0, game.sessionLeft - dt);
-        if(game.sessionLeft <= 0){
-          game.sessionState = "ended";
-        }
-      }
-    }
-
-    // ===== Movement / drawing =====
-    function step(dt){
-      for(const r of game.records){
-        const node = game.systems[r.sys] || {x:game.viewport.w/2, y:game.viewport.h/2};
-        r.vx += rnd(-8,8) * dt;
-        r.vy += rnd(-8,8) * dt;
-
-        const t = (now() + r.jitter) * 0.001;
-        const ox = Math.cos(t*1.5) * 18;
-        const oy = Math.sin(t*1.2) * 14;
-
-        const ax = (node.x+ox - r.x) * 0.8;
-        const ay = (node.y+oy - r.y) * 0.8;
-        r.vx += ax * dt;
-        r.vy += ay * dt;
-
-        r.vx *= (1 - 0.75*dt);
-        r.vy *= (1 - 0.75*dt);
-
-        r.x += r.vx * dt;
-        r.y += r.vy * dt;
-
-        const pad = 18;
-        if(r.x < pad){ r.x = pad; r.vx *= -0.6; }
-        if(r.y < pad){ r.y = pad; r.vy *= -0.6; }
-        if(r.x > game.viewport.w - pad){ r.x = game.viewport.w - pad; r.vx *= -0.6; }
-        if(r.y > game.viewport.h - pad){ r.y = game.viewport.h - pad; r.vy *= -0.6; }
-      }
-    }
-
-    function drawHeart(x,y,s,stroke){
-      ctx.save();
-      ctx.strokeStyle = stroke;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.bezierCurveTo(x - s, y - s, x - 2*s, y + s/2, x, y + 2*s);
-      ctx.bezierCurveTo(x + 2*s, y + s/2, x + s, y - s, x, y);
-      ctx.stroke();
-      ctx.restore();
-    }
-    function roundRect(ctx, x, y, w, h, r){
-      const rr = Math.min(r, w/2, h/2);
-      ctx.moveTo(x+rr,y);
-      ctx.arcTo(x+w,y,x+w,y+h,rr);
-      ctx.arcTo(x+w,y+h,x,y+h,rr);
-      ctx.arcTo(x,y+h,x,y,rr);
-      ctx.arcTo(x,y,x+w,y,rr);
-      ctx.closePath();
-    }
-
-    function draw(){
-      const W = game.viewport.w, H = game.viewport.h;
-      ctx.clearRect(0,0,W,H);
-
-      // Subtle grid
-      ctx.save();
-      ctx.globalAlpha = 0.08;
-      ctx.strokeStyle = "white";
-      ctx.lineWidth = 1;
-      const stepG = 38;
-      for(let x=0;x<W;x+=stepG){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
-      for(let y=0;y<H;y+=stepG){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
-      ctx.restore();
-
-      // Connections
-      ctx.save();
-      ctx.lineWidth = 3;
-      for(let i=0;i<game.systems.length;i++){
-        const a = game.systems[i];
-        if(i<game.systems.length-1){
-          const b = game.systems[i+1];
-          ctx.strokeStyle = "rgba(255,255,255,.14)";
-          ctx.beginPath();
-          ctx.moveTo(a.x,a.y);
-          ctx.quadraticCurveTo((a.x+b.x)/2, (a.y+b.y)/2 - 40, b.x, b.y);
-          ctx.stroke();
-          drawHeart(lerp(a.x,b.x,0.5), lerp(a.y,b.y,0.5)-22, 7, "rgba(255,255,255,.14)");
-        }
-      }
-      ctx.restore();
-
-      // Systems (bigger + labeled)
-      const mdmBlue = getCSS("--mdm-blue");
-      for(const s of game.systems){
-        ctx.save();
-        ctx.fillStyle = "rgba(255,255,255,.06)";
-        ctx.strokeStyle = "rgba(255,255,255,.18)";
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-        ctx.fill(); ctx.stroke();
-
-        if(game.mdm){
-          ctx.globalAlpha = 0.18;
-          ctx.strokeStyle = mdmBlue;
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.arc(s.x, s.y, s.r+12, 0, Math.PI*2);
-          ctx.stroke();
-        }
-
-        // Label
-        ctx.globalAlpha = 0.92;
-        ctx.fillStyle = "rgba(255,255,255,.86)";
-        ctx.font = "800 13px system-ui";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(s.label, s.x, s.y - 0.5);
-
-        ctx.restore();
-      }
-
-      // Records
-      for(const r of game.records){
-        const col = (r.state==="good") ? "rgba(34,197,94,1)"
-                  : (r.state==="bad") ? "rgba(239,68,68,1)"
-                  : "rgba(245,158,11,1)";
-
-        ctx.save();
-        ctx.globalAlpha = (r.state==="good") ? 0.12 : 0.18;
-        ctx.fillStyle = col;
-        ctx.beginPath();
-        ctx.arc(r.x, r.y, r.r+8, 0, Math.PI*2);
-        ctx.fill();
-        ctx.restore();
-
-        ctx.save();
-        ctx.fillStyle = col;
-        ctx.beginPath();
-        ctx.arc(r.x, r.y, r.r, 0, Math.PI*2);
-        ctx.fill();
-
-        ctx.fillStyle = "rgba(0,0,0,.45)";
-        ctx.font = "800 12px system-ui";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        let t = "✓";
-        if(r.state==="bad") t = "!";
-        if(r.state==="dupA" || r.state==="dupB") t = "≋";
-        ctx.fillText(t, r.x, r.y+0.5);
-        ctx.restore();
-
-        if((r.state==="dupA" || r.state==="dupB") && r.link){
-          const other = game.records.find(x=>x.id===r.link);
-          if(other){
-            ctx.save();
-            ctx.strokeStyle = "rgba(245,158,11,.22)";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(r.x,r.y);
-            ctx.lineTo(other.x, other.y);
-            ctx.stroke();
-            ctx.restore();
-          }
-        }
-      }
-
-      // Quality badge
-      const q = game.metrics.quality;
-      ctx.save();
-      ctx.globalAlpha = 0.92;
-      ctx.fillStyle = "rgba(17,24,39,.55)";
-      ctx.strokeStyle = "rgba(255,255,255,.10)";
-      ctx.lineWidth = 1;
-      const bw = 168, bh = 44;
-      ctx.beginPath();
-      roundRect(ctx, W - bw - 10, 10, bw, bh, 14);
-      ctx.fill(); ctx.stroke();
-      ctx.fillStyle = qualityColor(q);
-      ctx.font = "900 16px system-ui";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.fillText(`Qualität: ${Math.round(q)}%`, W - bw, 10 + bh/2);
-      ctx.restore();
-
-      // Session overlay when ended
-      if(game.sessionOn && game.sessionState==="ended"){
-        ctx.save();
-        ctx.fillStyle = "rgba(0,0,0,.45)";
-        ctx.fillRect(0,0,W,H);
-
-        ctx.fillStyle = "rgba(17,24,39,.86)";
-        ctx.strokeStyle = "rgba(255,255,255,.14)";
-        ctx.lineWidth = 1;
-        const pw = Math.min(520, W-30);
-        const ph = 220;
-        const px = (W-pw)/2, py = (H-ph)/2;
-        ctx.beginPath();
-        roundRect(ctx, px, py, pw, ph, 18);
-        ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = "rgba(255,255,255,.92)";
-        ctx.font = "900 20px system-ui";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("Session Ende", W/2, py+42);
-
-        ctx.font = "800 16px system-ui";
-        ctx.fillStyle = getCSS("--mdm-blue");
-        ctx.fillText(`Score: ${game.metrics.score}`, W/2, py+86);
-
-        ctx.fillStyle = "rgba(255,255,255,.85)";
-        ctx.font = "700 14px system-ui";
-        ctx.fillText(`Qualität: ${Math.round(game.metrics.quality)}% • Kosten: ${fmtEuro(game.metrics.cost)}`, W/2, py+120);
-
-        ctx.fillStyle = "rgba(156,163,175,.95)";
-        ctx.font = "700 13px system-ui";
-        ctx.fillText("Tippe Reset für neue Runde.", W/2, py+162);
-        ctx.restore();
-      }
-    }
-
-    // ===== Input =====
-    function getPos(evt){
-      const r = canvas.getBoundingClientRect();
-      if(evt.touches && evt.touches[0]) return {x: evt.touches[0].clientX - r.left, y: evt.touches[0].clientY - r.top};
-      if(evt.changedTouches && evt.changedTouches[0]) return {x: evt.changedTouches[0].clientX - r.left, y: evt.changedTouches[0].clientY - r.top};
-      return {x: evt.clientX - r.left, y: evt.clientY - r.top};
-    }
-    function findRecordAt(p){
-      let best=null, bestD=1e9;
-      for(const r of game.records){
-        const dx=r.x-p.x, dy=r.y-p.y;
-        const d = Math.sqrt(dx*dx+dy*dy);
-        if(d < r.r + 10 && d < bestD){ bestD = d; best = r; }
-      }
-      return best;
-    }
-    function toast(html, tag){
-      const el = document.getElementById("toast");
-      el.innerHTML = html + (tag ? `<span class="tag">${tag}</span>` : "");
-      el.classList.add("show");
-      game.toastAt = now();
-    }
-
-    function fixRecord(r){
-      if(game.sessionOn && game.sessionState!=="live") return;
-      if(!r) return;
-
-      if(r.state==="bad"){
-        r.state="good";
-        r.link=null;
-        game.metrics.fixes++;
-        game.metrics.score += 35;
-        toast("Fix ✔︎ — Rot (Fehler) korrigiert, bevor es weiter propagiert.", "Fix");
-      } else if(r.state==="dupA" || r.state==="dupB"){
-        toast("Orange = Dublette. Long-Press = Merge (Golden Record).", "Dubletten");
-      } else {
-        toast("Grün = sauber 🙂", "OK");
-      }
-    }
-
-    function mergeDupPair(r){
-      if(game.sessionOn && game.sessionState!=="live") return false;
-      if(!r) return false;
-      if(!(r.state==="dupA" || r.state==="dupB") || !r.link) return false;
-      const otherIndex = game.records.findIndex(x=>x.id===r.link);
-      if(otherIndex < 0) return false;
-
-      const other = game.records[otherIndex];
-      r.state = "good";
-      r.link = null;
-      game.records.splice(otherIndex,1);
-
-      game.metrics.fixes += 2;
-      game.metrics.score += 60;
-      toast("Merge 💙 — Dublette bereinigt (Golden Record).", "Merge");
-      return true;
-    }
-
-    let longPressTimer = null;
-    function onDown(evt){
-      evt.preventDefault?.();
-      if(game.sessionOn && game.sessionState!=="live") return;
-
-      const p = getPos(evt);
-      game.input.down = true;
-      game.input.downAt = now();
-      game.input.downPos = p;
-
-      clearTimeout(longPressTimer);
-      longPressTimer = setTimeout(()=>{
-        if(!game.input.down) return;
-        const r = findRecordAt(p);
-        if(r && (r.state==="dupA" || r.state==="dupB")){
-          mergeDupPair(r);
-        } else {
-          toast("Long-Press ist fürs Dubletten-Merge (orange).", "Info");
-        }
-      }, 420);
-    }
-    function onUp(evt){
-      evt.preventDefault?.();
-      if(game.sessionOn && game.sessionState!=="live") return;
-
-      const p = getPos(evt);
-      const held = now() - game.input.downAt;
-      game.input.down = false;
-      clearTimeout(longPressTimer);
-      if(held < 380){
-        const r = findRecordAt(p);
-        fixRecord(r);
-      }
-    }
-
-    canvas.addEventListener("touchstart", onDown, {passive:false});
-    canvas.addEventListener("touchend", onUp, {passive:false});
-    canvas.addEventListener("mousedown", onDown);
-    window.addEventListener("mouseup", onUp);
-
-    // ===== Buttons =====
-    document.getElementById("btnReset").addEventListener("click", ()=>initLevel(game.lvlIndex));
-    document.getElementById("btnPrev").addEventListener("click", ()=>initLevel(game.lvlIndex - 1));
-    document.getElementById("btnNext").addEventListener("click", ()=>initLevel(game.lvlIndex + 1));
-
-    document.getElementById("btnMdm").addEventListener("click", ()=>{
-      const L = LEVELS[game.lvlIndex];
-      if(L.forceMdm) return;
-      game.mdm = !game.mdm;
-      syncMdmUI();
-      toast(game.mdm
-        ? "MDM aktiviert 💙 — Validierung + Dublettenbremse + weniger Incidents."
-        : "MDM deaktiviert — jetzt wird’s schnell teuer 😅"
-      , "MDM");
-    });
-
-    document.getElementById("btnSession").addEventListener("click", ()=>{
-      game.sessionOn = !game.sessionOn;
-      syncSessionUI();
-      toast(game.sessionOn ? "Session-Modus: 120s Challenge" : "Session-Modus aus (freies Spiel)", "Session");
-      initLevel(game.lvlIndex);
-    });
-
-    // ===== HUD update =====
     function spreadLabel(){
       const L = LEVELS[game.lvlIndex];
       const s = L.spreadFactor * (game.mdm ? 0.28 : 1.0);
@@ -855,60 +405,783 @@
       computeQuality();
       const m = game.metrics;
       const q = m.quality;
-
-      document.getElementById("qVal").textContent = String(Math.round(q));
-      const bar = document.getElementById("qBar");
+      el("qVal").textContent = String(Math.round(q));
+      const bar = el("qBar");
       bar.style.width = `${q}%`;
       bar.style.background = qualityColor(q);
 
-      document.getElementById("errVal").textContent = String(m.errors);
-      document.getElementById("dupVal").textContent = String(m.dups);
-      document.getElementById("fixVal").textContent = String(m.fixes);
-      document.getElementById("costVal").textContent = fmtEuro(m.cost);
-      document.getElementById("timeVal").textContent = m.timeSpent.toFixed(1);
-      document.getElementById("spreadVal").textContent = spreadLabel();
+      el("sysVal").textContent = String(LEVELS[game.lvlIndex].systems);
+      el("recVal").textContent = String(LEVELS[game.lvlIndex].records);
+      el("errVal").textContent = String(m.errors);
+      el("dupVal").textContent = String(m.dups);
+      el("fixVal").textContent = String(m.fixes);
+      el("costVal").textContent= fmtEuro(m.cost);
+      el("timeVal").textContent= m.timeSpent.toFixed(1);
+      el("spreadVal").textContent= spreadLabel();
+      el("scoreVal").textContent = String(Math.round(m.score));
+      el("statusVal").textContent = game.sessionOn ? game.sessionState : "free";
+      if(game.sessionOn) el("timerLbl").textContent = `${Math.ceil(game.sessionLeft)}s`;
+    }
 
-      document.getElementById("scoreVal").textContent = String(m.score);
-      document.getElementById("statusVal").textContent = (game.sessionOn ? game.sessionState : "free");
+    function tutorialStartIfLevel1(){
+      const L = LEVELS[game.lvlIndex];
+      if(L.id !== 1){ game.tutorial.active = false; return; }
+      game.tutorial.active = true;
+      game.tutorial.step = 0;
+      game.tutorialImpactDone = false;
+      toast("Ein ganz normaler Arbeitstag.", "Tutorial");
+    }
 
-      if(game.sessionOn){
-        document.getElementById("timerLbl").textContent = `${Math.ceil(game.sessionLeft)}s`;
+    function tutorialTick(){
+      if(!game.tutorial.active) return;
+      switch(game.tutorial.step){
+        case 0:
+          game.records.forEach((r,i)=>{ r.state = (i===0 ? "bad" : "good"); r.link=null; });
+          toast("Du pflegst Stammdaten sorgfältig. Tippe rot zum Fix.", "Tutorial");
+          game.tutorial.step = 1;
+          break;
+        case 1:
+          if(game.metrics.errors === 0){
+            toast("Gut gemacht ✔️", "Tutorial");
+            game.tutorial.step = 2;
+          }
+          break;
+        case 2:
+          toast("Währenddessen passieren andere Dinge …", "Tutorial");
+          game.tutorial.step = 3;
+          break;
+        case 3:
+          if(game.activeTask){
+            if(!game.tutorialImpactDone){
+              game.tutorialImpactDone = true;
+              triggerImpact("Tutorial");
+            }
+            toast("Nicht Unachtsamkeit – Realität. Systeme helfen, wenn Menschen busy sind.", "Tutorial");
+            game.tutorial.active = false;
+          }
+          break;
       }
     }
 
-    // ===== Loop =====
+    function spawnTask(){
+      if(game.activeTask || (game.sessionOn && game.sessionState==="ended")) return;
+      game.activeTask = TASKS[(Math.random()*TASKS.length)|0];
+      game.taskTimer = 3.5 + Math.random()*2.5;
+      toast(`${game.activeTask.icon} ${game.activeTask.text}`, "Task");
+    }
+
+    function triggerImpact(reasonTag){
+      const damp = game.mdm ? 0.35 : 1.0;
+      const imp = IMPACTS[(Math.random()*IMPACTS.length)|0];
+      const spike = (imp.cost[0] + Math.random()*(imp.cost[1]-imp.cost[0])) * damp;
+      game.metrics.cost += spike;
+      game.metrics.score += Math.round(imp.score * damp);
+
+      const extra = game.mdm ? 0 : 1;
+      for(let i=0;i<extra;i++){
+        const r = game.records.find(x=>x.state==="good");
+        if(r) r.state="bad";
+      }
+      toast(`${stars(imp.stars)} <b>${imp.text}</b> <span class="tag">${imp.area}</span> <span class="tag">+${fmtEuro(spike)}</span>`, reasonTag || "Impact");
+    }
+
+    function maybePropagationEvent(dt){
+      if(game.sessionOn && game.sessionState!=="live") return;
+      game.nextEventIn -= dt;
+      if(game.nextEventIn > 0) return;
+
+      const L = LEVELS[game.lvlIndex];
+      const lateSystems = Math.max(1, Math.floor(L.systems * 0.45));
+      const thresholdSys = Math.max(1, L.systems - lateSystems);
+
+      const badLate = game.records.filter(r => r.state==="bad" && r.sys >= thresholdSys).length;
+      const dupLate = game.records.filter(r => (r.state==="dupA"||r.state==="dupB") && r.sys >= thresholdSys).length;
+
+      if(badLate + dupLate === 0){
+        game.nextEventIn = 4.0 + Math.random()*6.0;
+        return;
+      }
+
+      const sev = clamp((badLate*1.0 + dupLate*1.2) / 6.0, 0.3, 2.2);
+      const baseSpike = 220 * sev * (1 + (L.systems/4));
+      const spike = baseSpike * (game.mdm ? 0.35 : 1.0);
+
+      game.metrics.cost += spike;
+      game.metrics.score -= Math.round(spike * 0.15);
+
+      const what = (Math.random()<0.5) ? "Rechnungslauf" : "Versand/CRM";
+      toast(`⚠️ Incident in <b>${what}</b>: falsche Daten im Spät-System → <b>${fmtEuro(spike)}</b> Extra-Kosten.`, "Propagation");
+
+      game.nextEventIn = 8.0 + Math.random()*8.0;
+    }
+
+    function maybeImpact(dt){
+      if(game.sessionOn && game.sessionState!=="live") return;
+      game.nextImpactIn -= dt;
+      if(game.nextImpactIn > 0) return;
+
+      const L = LEVELS[game.lvlIndex];
+      const lateSystems = Math.max(1, Math.floor(L.systems * 0.40));
+      const thresholdSys = Math.max(1, L.systems - lateSystems);
+
+      const badLate = game.records.filter(r => r.state==="bad" && r.sys >= thresholdSys).length;
+      const dupLate = game.records.filter(r => (r.state==="dupA"||r.state==="dupB") && r.sys >= thresholdSys).length;
+
+      const taskBoost  = game.activeTask ? 0.25 : 0.0;
+      const lateSignal = clamp((badLate*1.0 + dupLate*1.2) / 6.0, 0, 1);
+
+      if(lateSignal > 0.18 || game.activeTask){
+        const p = clamp(0.20 + lateSignal*0.70 + taskBoost, 0, 0.95);
+        if(Math.random() < p) triggerImpact(game.activeTask ? "Task→Impact" : "Late→Impact");
+      }
+      game.nextImpactIn = (game.mdm ? 10.5 : 7.5) + Math.random() * (game.mdm ? 9 : 7);
+    }
+
+    function spreadTick(dt){
+      const L = LEVELS[game.lvlIndex];
+
+      if(!game.activeTask && Math.random() < dt * 0.15) spawnTask();
+
+      let taskFactor = 1.0;
+      if(game.activeTask){
+        game.taskTimer -= dt;
+        taskFactor = 1.35;
+
+        const penalty = game.mdm ? 0.004 : 0.012;
+        if(Math.random() < penalty){
+          const r = game.records.find(x=>x.state==="good");
+          if(r) r.state="bad";
+        }
+        if(game.taskTimer <= 0) game.activeTask = null;
+      }
+
+      const errRate = L.baseErrorRate * (game.mdm ? 0.30 : 1.0) * taskFactor;
+      const dupRate = L.duplicateRate * (game.mdm ? 0.22 : 1.0) * taskFactor;
+      const spread  = L.spreadFactor * (game.mdm ? 0.28 : 1.0) * (game.activeTask ? 1.15 : 1.0);
+
+      for(const r of game.records){
+        const advanceProb = (0.12 + (r.state!=="good" ? 0.09 : 0.0)) * dt;
+        if(r.sys < game.systems.length-1 && Math.random() < advanceProb) r.sys++;
+
+        if(r.state==="good" && Math.random() < errRate * dt) r.state="bad";
+
+        if(r.state==="good" && L.systems>=2 && Math.random() < dupRate * dt){
+          const a = r;
+          const b = new Record(a.x + rnd(-22,22), a.y + rnd(-22,22));
+          b.sys = a.sys;
+          a.state = "dupA"; b.state = "dupB";
+          a.link = b.id; b.link = a.id;
+          game.records.push(b);
+        }
+      }
+
+      const infectors = game.records.filter(r => r.state!=="good");
+      if(infectors.length){
+        const attempts = Math.min(42, infectors.length);
+        for(let i=0;i<attempts;i++){
+          const src = infectors[(Math.random()*infectors.length)|0];
+          const cand = game.records[(Math.random()*game.records.length)|0];
+          if(!cand || cand.state!=="good") continue;
+
+          const dx = cand.x - src.x, dy = cand.y - src.y;
+          const dist2 = dx*dx + dy*dy;
+
+          const sysFactor = (cand.sys / Math.max(1, (game.systems.length-1))) * 0.9 + 0.1;
+          const radius = 85 + sysFactor*110;
+          const p = spread * sysFactor * dt * (dist2 < radius*radius ? 0.55 : 0.14);
+
+          if(Math.random() < p) cand.state="bad";
+        }
+      }
+
+      computeQuality();
+
+      const bad  = game.metrics.errors;
+      const dups = game.metrics.dups;
+      const chaos = (bad*1.05 + dups*1.8);
+      game.metrics.cost += chaos * L.costPerBadPerSec * dt;
+
+      game.metrics.score += Math.round((game.metrics.quality - 70) * 0.02);
+      game.metrics.score += (game.mdm ? 1 : 0);
+      game.metrics.timeSpent += dt * L.timeWeight;
+
+      maybePropagationEvent(dt);
+      maybeImpact(dt);
+
+      if(game.sessionOn && game.sessionState==="live"){
+        game.sessionLeft = Math.max(0, game.sessionLeft - dt);
+        if(game.sessionLeft <= 0){
+          game.sessionState="ended";
+          if(!baseline.taken) snapshotBaseline();
+        }
+      }
+    }
+
+    function step(dt){
+      for(const r of game.records){
+        const node = game.systems[r.sys] || {x:game.viewport.w/2, y:game.viewport.h/2};
+
+        r.vx += rnd(-8,8) * dt;
+        r.vy += rnd(-8,8) * dt;
+
+        const t = (now() + r.jitter) * 0.001;
+        const ox = Math.cos(t*1.5) * 18;
+        const oy = Math.sin(t*1.2) * 14;
+
+        const ax = (node.x+ox - r.x) * 0.8;
+        const ay = (node.y+oy - r.y) * 0.8;
+        r.vx += ax * dt; r.vy += ay * dt;
+
+        r.vx *= (1 - 0.75*dt);
+        r.vy *= (1 - 0.75*dt);
+
+        r.x += r.vx * dt;
+        r.y += r.vy * dt;
+
+        const pad = 18;
+        if(r.x < pad){ r.x=pad; r.vx*=-0.6; }
+        if(r.y < pad){ r.y=pad; r.vy*=-0.6; }
+        if(r.x > game.viewport.w-pad){ r.x=game.viewport.w-pad; r.vx*=-0.6; }
+        if(r.y > game.viewport.h-pad){ r.y=game.viewport.h-pad; r.vy*=-0.6; }
+      }
+    }
+
+    function roundRect(ctx, x, y, w, h, r){
+      const rr = Math.min(r, w/2, h/2);
+      ctx.moveTo(x+rr,y);
+      ctx.arcTo(x+w,y,x+w,y+h,rr);
+      ctx.arcTo(x+w,y+h,x,y+h,rr);
+      ctx.arcTo(x,y+h,x,y,rr);
+      ctx.arcTo(x,y,x+w,y,rr);
+      ctx.closePath();
+    }
+    function drawHeart(x,y,s,stroke){
+      ctx.save();
+      ctx.strokeStyle = stroke; ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.bezierCurveTo(x - s, y - s, x - 2*s, y + s/2, x, y + 2*s);
+      ctx.bezierCurveTo(x + 2*s, y + s/2, x + s, y - s, x, y);
+      ctx.stroke();
+      ctx.restore();
+    }
+    function wrapText(text, x, y, maxWidth, lineHeight){
+      const words = String(text).split(" ");
+      let line = "";
+      let yy = y;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      for(let n=0;n<words.length;n++){
+        const testLine = line + words[n] + " ";
+        if(ctx.measureText(testLine).width > maxWidth && n>0){
+          ctx.fillText(line, x, yy);
+          line = words[n] + " ";
+          yy += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, x, yy);
+    }
+
+    function drawEndCard(){
+      const W = game.viewport.w, H = game.viewport.h;
+      ctx.save();
+      ctx.fillStyle = "rgba(0,0,0,.45)";
+      ctx.fillRect(0,0,W,H);
+
+      const pw = Math.min(560, W-26), ph = 260;
+      const px = (W-pw)/2, py=(H-ph)/2;
+
+      ctx.fillStyle="rgba(17,24,39,.92)";
+      ctx.strokeStyle="rgba(255,255,255,.14)";
+      ctx.lineWidth=1;
+      ctx.beginPath(); roundRect(ctx, px, py, pw, ph, 20); ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle="rgba(255,255,255,.92)";
+      ctx.font="950 20px system-ui";
+      ctx.textAlign="left"; ctx.textBaseline="middle";
+      ctx.fillText("Love your Data 💙 – Session Ergebnis", px+18, py+34);
+
+      ctx.fillStyle="rgba(156,163,175,.95)";
+      ctx.font="700 13px system-ui";
+      ctx.fillText(el("lvlLbl").textContent, px+18, py+60);
+
+      ctx.fillStyle=getCSS("--mdm-blue");
+      ctx.font="950 34px system-ui";
+      ctx.fillText(`Score ${Math.round(game.metrics.score)}`, px+18, py+102);
+
+      const q = Math.round(game.metrics.quality);
+      ctx.fillStyle="rgba(255,255,255,.86)";
+      ctx.font="850 14px system-ui";
+      ctx.fillText(`Qualität: ${q}%`, px+18, py+132);
+      ctx.fillText(`Kosten: ${fmtEuro(game.metrics.cost)}`, px+180, py+132);
+
+      ctx.strokeStyle="rgba(255,255,255,.10)";
+      ctx.beginPath(); ctx.moveTo(px+18, py+150); ctx.lineTo(px+pw-18, py+150); ctx.stroke();
+
+      if(baseline.taken){
+        const cur = { quality: Math.round(game.metrics.quality), cost: Math.round(game.metrics.cost), score: Math.round(game.metrics.score) };
+        const aLabel = baseline.mdmState ? "Mit MDM (Baseline)" : "Ohne MDM (Baseline)";
+        const bLabel = game.mdm ? "Mit MDM (Jetzt)" : "Ohne MDM (Jetzt)";
+
+        ctx.font="700 12.5px system-ui";
+        ctx.fillStyle="rgba(156,163,175,.95)";
+        ctx.fillText(`${aLabel}: Q ${baseline.quality}% • ${fmtEuro(baseline.cost)} • S ${baseline.score}`, px+18, py+176);
+
+        ctx.fillStyle=getCSS("--mdm-blue");
+        ctx.fillText(`${bLabel}: Q ${cur.quality}% • ${fmtEuro(cur.cost)} • S ${cur.score}`, px+18, py+198);
+
+        const dq = cur.quality - baseline.quality;
+        const dc = baseline.cost - cur.cost;
+        const ds = cur.score - baseline.score;
+
+        ctx.fillStyle="rgba(255,255,255,.86)";
+        ctx.font="900 13px system-ui";
+        ctx.fillText(`Δ Qualität ${dq>=0?"+":""}${dq}%   Δ Kosten ${dc>=0?"-":"+"}${fmtEuro(Math.abs(dc))}   Δ Score ${ds>=0?"+":""}${ds}`, px+18, py+226);
+      } else {
+        ctx.fillStyle="rgba(156,163,175,.95)";
+        ctx.font="700 12.5px system-ui";
+        ctx.fillText("Tipp: zweite Runde starten für Vergleich (mit/ohne MDM).", px+18, py+188);
+      }
+
+      ctx.fillStyle="rgba(156,163,175,.9)";
+      ctx.font="700 12px system-ui";
+      ctx.fillText("Share: Button oben • Reset: neue Runde", px+18, py+248);
+      ctx.restore();
+    }
+
+    function draw(){
+      const W = game.viewport.w, H = game.viewport.h;
+      ctx.clearRect(0,0,W,H);
+
+      // grid
+      ctx.save();
+      ctx.globalAlpha=0.08;
+      ctx.strokeStyle="white";
+      ctx.lineWidth=1;
+      const stepG=38;
+      for(let x=0;x<W;x+=stepG){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+      for(let y=0;y<H;y+=stepG){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+      ctx.restore();
+
+      // connections
+      ctx.save();
+      ctx.lineWidth=3;
+      for(let i=0;i<game.systems.length;i++){
+        const a=game.systems[i];
+        if(i<game.systems.length-1){
+          const b=game.systems[i+1];
+          ctx.strokeStyle="rgba(255,255,255,.14)";
+          ctx.beginPath();
+          ctx.moveTo(a.x,a.y);
+          ctx.quadraticCurveTo((a.x+b.x)/2, (a.y+b.y)/2 - 40, b.x, b.y);
+          ctx.stroke();
+          drawHeart(lerp(a.x,b.x,0.5), lerp(a.y,b.y,0.5)-22, 7, "rgba(255,255,255,.14)");
+        }
+      }
+      ctx.restore();
+
+      // systems
+      const mdmBlue = getCSS("--mdm-blue");
+      for(const s of game.systems){
+        ctx.save();
+        ctx.fillStyle="rgba(255,255,255,.06)";
+        ctx.strokeStyle="rgba(255,255,255,.18)";
+        ctx.lineWidth=2.2;
+        ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill(); ctx.stroke();
+
+        if(game.mdm){
+          ctx.globalAlpha=0.18;
+          ctx.strokeStyle=mdmBlue;
+          ctx.lineWidth=3;
+          ctx.beginPath(); ctx.arc(s.x,s.y,s.r+12,0,Math.PI*2); ctx.stroke();
+          ctx.globalAlpha=1;
+        }
+        ctx.globalAlpha=0.92;
+        ctx.fillStyle="rgba(255,255,255,.86)";
+        ctx.font="900 13px system-ui";
+        ctx.textAlign="center"; ctx.textBaseline="middle";
+        ctx.fillText(s.label, s.x, s.y-0.5);
+        ctx.restore();
+      }
+
+      // records
+      for(const r of game.records){
+        const col = (r.state==="good") ? "rgba(34,197,94,1)" : (r.state==="bad") ? "rgba(239,68,68,1)" : "rgba(245,158,11,1)";
+
+        ctx.save();
+        ctx.globalAlpha = (r.state==="good") ? 0.12 : 0.18;
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.arc(r.x,r.y,r.r+8,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,Math.PI*2); ctx.fill();
+
+        ctx.fillStyle="rgba(0,0,0,.45)";
+        ctx.font="900 12px system-ui";
+        ctx.textAlign="center"; ctx.textBaseline="middle";
+        let t="✓"; if(r.state==="bad") t="!"; if(r.state==="dupA"||r.state==="dupB") t="≋";
+        ctx.fillText(t, r.x, r.y+0.5);
+        ctx.restore();
+
+        if((r.state==="dupA"||r.state==="dupB") && r.link){
+          const other = game.records.find(x=>x.id===r.link);
+          if(other){
+            ctx.save();
+            ctx.strokeStyle="rgba(245,158,11,.22)";
+            ctx.lineWidth=2;
+            ctx.beginPath(); ctx.moveTo(r.x,r.y); ctx.lineTo(other.x, other.y); ctx.stroke();
+            ctx.restore();
+          }
+        }
+      }
+
+      // quality badge
+      const q=game.metrics.quality;
+      ctx.save();
+      ctx.globalAlpha=0.92;
+      ctx.fillStyle="rgba(17,24,39,.55)";
+      ctx.strokeStyle="rgba(255,255,255,.10)";
+      ctx.lineWidth=1;
+      const bw=168,bh=44;
+      ctx.beginPath(); roundRect(ctx, W-bw-10, 10, bw, bh, 14); ctx.fill(); ctx.stroke();
+      ctx.fillStyle=qualityColor(q);
+      ctx.font="950 16px system-ui";
+      ctx.textAlign="left"; ctx.textBaseline="middle";
+      ctx.fillText(`Qualität: ${Math.round(q)}%`, W-bw, 10+bh/2);
+      ctx.restore();
+
+      // system popup
+      if(game.systemPopup.active && game.systemPopup.data){
+        const {title,text,impact} = game.systemPopup.data;
+        ctx.save();
+        ctx.globalAlpha=0.95;
+        ctx.fillStyle="rgba(17,24,39,.92)";
+        ctx.strokeStyle="rgba(255,255,255,.14)";
+        ctx.lineWidth=1;
+
+        const w=Math.min(340, W-40), h=140;
+        const x=clamp(game.systemPopup.x - w/2, 20, W-w-20);
+        const y=clamp(game.systemPopup.y + 40, 20, H-h-20);
+
+        ctx.beginPath(); roundRect(ctx,x,y,w,h,14); ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle="white"; ctx.font="900 14px system-ui";
+        ctx.textAlign="left"; ctx.textBaseline="middle";
+        ctx.fillText(title, x+14, y+24);
+
+        ctx.fillStyle="rgba(229,231,235,.9)";
+        ctx.font="650 13px system-ui";
+        ctx.fillText(text, x+14, y+50);
+
+        ctx.fillStyle="rgba(239,68,68,.92)";
+        ctx.font="800 12.5px system-ui";
+        ctx.fillText("Folge:", x+14, y+78);
+
+        ctx.fillStyle="rgba(229,231,235,.85)";
+        ctx.font="700 12.5px system-ui";
+        wrapText(impact, x+64, y+78, w-78, 15);
+
+        if(game.mdm){
+          ctx.fillStyle=mdmBlue;
+          ctx.font="800 12.5px system-ui";
+          ctx.fillText("MDM fängt hier ab.", x+14, y+118);
+        }
+        ctx.restore();
+      }
+
+      if(game.sessionOn && game.sessionState==="ended") drawEndCard();
+    }
+
+    function getPos(evt){
+      const r = canvas.getBoundingClientRect();
+      if(evt.touches && evt.touches[0]) return {x: evt.touches[0].clientX - r.left, y: evt.touches[0].clientY - r.top};
+      if(evt.changedTouches && evt.changedTouches[0]) return {x: evt.changedTouches[0].clientX - r.left, y: evt.changedTouches[0].clientY - r.top};
+      return {x: evt.clientX - r.left, y: evt.clientY - r.top};
+    }
+
+    function findRecordAt(p){
+      let best=null, bestD=1e9;
+      for(const r of game.records){
+        const dx=r.x-p.x, dy=r.y-p.y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d < r.r + 22 && d < bestD){ bestD=d; best=r; }
+      }
+      return best;
+    }
+    function findSystemAt(p){
+      for(const s of game.systems){
+        const dx=p.x-s.x, dy=p.y-s.y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d < s.r + 16) return s;
+      }
+      return null;
+    }
+
+    function fixRecord(r){
+      if(!r) return;
+      if(game.sessionOn && game.sessionState!=="live") return;
+
+      if(r.state==="bad"){
+        r.state="good"; r.link=null;
+        game.metrics.fixes++;
+        game.metrics.score += 35;
+        toast("Fix ✔︎ — Rot (Fehler) korrigiert, bevor es weiter propagiert.", "Fix");
+      } else if(r.state==="dupA" || r.state==="dupB"){
+        toast("Orange = Dublette. Long-Press = Merge (Golden Record).", "Dubletten");
+      } else {
+        toast("Grün = sauber 🙂", "OK");
+      }
+    }
+
+    function mergeDupPair(r){
+      if(!r) return false;
+      if(game.sessionOn && game.sessionState!=="live") return false;
+      if(!(r.state==="dupA" || r.state==="dupB") || !r.link) return false;
+
+      const otherIndex = game.records.findIndex(x=>x.id===r.link);
+      if(otherIndex < 0) return false;
+      const other = game.records[otherIndex];
+
+      r.x = (r.x + other.x)/2;
+      r.y = (r.y + other.y)/2;
+
+      r.state="good";
+      r.link=null;
+      game.records.splice(otherIndex,1);
+
+      game.metrics.fixes += 2;
+      game.metrics.score += 60;
+      toast("Merge 💙 — Dublette bereinigt (Golden Record).", "Merge");
+      return true;
+    }
+
+    let longPressTimer=null;
+    let downAt=0;
+
+    function onDown(evt){
+      evt.preventDefault?.();
+      if(game.sessionOn && game.sessionState!=="live") return;
+
+      const p = getPos(evt);
+      downAt = now();
+
+      // system tap -> open popup and consume
+      const sys = findSystemAt(p);
+      if(sys){
+        const info = SYSTEM_INFO[sys.label];
+        if(info){
+          game.systemPopup.active=true;
+          game.systemPopup.x=sys.x; game.systemPopup.y=sys.y;
+          game.systemPopup.data=info;
+          game.systemPopup.until=now()+4000;
+          toast(`${info.title}: ${info.text}`, "System");
+          clearTimeout(longPressTimer);
+          return;
+        }
+      }
+
+      clearTimeout(longPressTimer);
+      longPressTimer=setTimeout(()=>{
+        const r=findRecordAt(p);
+        if(r && (r.state==="dupA"||r.state==="dupB")) mergeDupPair(r);
+        else toast("Long-Press ist fürs Dubletten-Merge (orange).", "Info");
+      }, 420);
+    }
+
+    function onUp(evt){
+      evt.preventDefault?.();
+
+      if(game.systemPopup.active){
+        game.systemPopup.active=false;
+        game.systemPopup.data=null;
+        return;
+      }
+
+      if(game.sessionOn && game.sessionState!=="live") return;
+
+      clearTimeout(longPressTimer);
+      const held = now() - downAt;
+      if(held < 380){
+        const p = getPos(evt);
+        const r = findRecordAt(p);
+        fixRecord(r);
+      }
+    }
+
+    canvas.addEventListener("touchstart", onDown, {passive:false});
+    canvas.addEventListener("touchend", onUp, {passive:false});
+    canvas.addEventListener("mousedown", onDown);
+    window.addEventListener("mouseup", onUp);
+
+    async function shareCanvasPNG(){
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 1.0));
+      if(!blob){ toast("Export fehlgeschlagen.", "Share"); return; }
+      const file = new File([blob], "love-your-data.png", { type:"image/png" });
+
+      if(navigator.canShare && navigator.canShare({ files:[file] })){
+        try{
+          await navigator.share({ files:[file], title:"Love your Data – Ergebnis", text:"Stammdatenqualität spielerisch erklärt 💙" });
+          toast("Geteilt ✔️", "Share");
+          return;
+        }catch(e){}
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href=url; a.download="love-your-data.png";
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      toast("PNG gespeichert ✔️", "Share");
+    }
+
+    function syncMdmUI(){
+      const L = LEVELS[game.lvlIndex];
+      const forced = !!L.forceMdm;
+      const btn = el("btnMdm");
+      const pill = el("mdmPill");
+
+      if(game.mdm){
+        btn.textContent = forced ? "MDM: On (locked)" : "MDM: On";
+        pill.style.display="inline-flex";
+      } else {
+        btn.textContent = "MDM: Off";
+        pill.style.display="none";
+      }
+      btn.disabled = forced;
+      btn.style.opacity = forced ? 0.6 : 1;
+    }
+    function syncSessionUI(){
+      el("btnSession").textContent = `Session: ${game.sessionOn ? "On" : "Off"}`;
+      el("timerPill").style.display = game.sessionOn ? "inline-flex" : "none";
+    }
+    function syncDemoUI(){
+      el("btnDemo").textContent = `Demo: ${game.demo.on ? "On" : "Off"}`;
+    }
+
+    function runDemo(dt){
+      if(!game.demo.on) return;
+
+      if(game.sessionOn && game.sessionState==="ended"){
+        game.demo.autoRestartIn -= dt;
+        if(game.demo.autoRestartIn <= 0){
+          const L = LEVELS[game.lvlIndex];
+          if(!L.forceMdm) game.mdm = !game.mdm;
+          syncMdmUI();
+          initLevel(game.lvlIndex);
+
+          game.demo.autoRestartIn = 2.2 + Math.random()*1.5;
+          game.demo.nextActionIn  = 0.9 + Math.random()*0.8;
+        }
+        return;
+      }
+
+      game.demo.nextActionIn -= dt;
+      if(game.demo.nextActionIn > 0) return;
+      game.demo.nextActionIn = 0.55 + Math.random()*0.9;
+
+      const bad = game.records.find(r=>r.state==="bad");
+      if(bad){ fixRecord(bad); return; }
+      const dup = game.records.find(r=>(r.state==="dupA"||r.state==="dupB"));
+      if(dup){ mergeDupPair(dup); return; }
+    }
+
+    function initLevel(idx){
+      game.lvlIndex = clamp(idx, 0, LEVELS.length-1);
+      const L = LEVELS[game.lvlIndex];
+      if(L.forceMdm) game.mdm = true;
+
+      game.metrics = {quality:100, errors:0, dups:0, fixes:0, cost:0, timeSpent:0, score:0};
+      game.records = [];
+      game.systems = buildSystems(L.systems);
+
+      const s0 = game.systems[0] || {x:game.viewport.w/2, y:game.viewport.h/2};
+      for(let i=0;i<L.records;i++){
+        const r = new Record(s0.x + rnd(-90,90), s0.y + rnd(-70,70));
+        r.sys=0;
+        game.records.push(r);
+      }
+
+      game.sessionLeft = game.sessionLen;
+      game.sessionState = "live";
+
+      game.activeTask=null; game.taskTimer=0;
+      game.nextImpactIn = 6.5 + Math.random()*5.5;
+      game.nextEventIn  = 6.0 + Math.random()*6.0;
+
+      game.systemPopup.active=false;
+      game.systemPopup.data=null;
+
+      el("lvlLbl").textContent = `Level ${L.id}: ${L.name}`;
+      syncMdmUI(); syncSessionUI(); syncDemoUI();
+      tutorialStartIfLevel1();
+      toast(`Start: <b>${L.name}</b>`, "Go");
+    }
+
+    el("btnPrev").addEventListener("click", ()=>initLevel(game.lvlIndex-1));
+    el("btnNext").addEventListener("click", ()=>initLevel(game.lvlIndex+1));
+    el("btnMdm").addEventListener("click", ()=>{
+      const L = LEVELS[game.lvlIndex];
+      if(L.forceMdm) return;
+      game.mdm = !game.mdm;
+      syncMdmUI();
+      toast(game.mdm ? "MDM aktiviert 💙 — weniger Incidents/Reviews." : "MDM deaktiviert — jetzt wird’s schneller teuer 😅", "MDM");
+    });
+    el("btnSession").addEventListener("click", ()=>{
+      game.sessionOn = !game.sessionOn;
+      syncSessionUI();
+      toast(game.sessionOn ? "Session-Modus: 120s Challenge" : "Freies Spiel (ohne Timer)", "Session");
+      initLevel(game.lvlIndex);
+    });
+    el("btnDemo").addEventListener("click", ()=>{
+      game.demo.on = !game.demo.on;
+      syncDemoUI();
+      toast(game.demo.on ? "Auto-Demo aktiv (Messe-Modus)" : "Auto-Demo aus", "Demo");
+    });
+    el("btnShare").addEventListener("click", ()=>shareCanvasPNG());
+    el("btnReset").addEventListener("click", ()=>{
+      if(baseline.taken){
+        const L = LEVELS[game.lvlIndex];
+        if(!L.forceMdm) game.mdm = !game.mdm;
+        syncMdmUI();
+      }
+      initLevel(game.lvlIndex);
+    });
+
     let last = now();
     function frame(){
       const t = now();
       const dt = clamp((t-last)/1000, 0, 0.033);
       last = t;
 
+      const toastEl = el("toast");
+      if(toastEl.classList.contains("show") && (t - game.toastAt) > 2400) toastEl.classList.remove("show");
+
+      if(game.systemPopup.active && t > game.systemPopup.until){
+        game.systemPopup.active=false;
+        game.systemPopup.data=null;
+      }
+
+      tutorialTick();
+
       if(!(game.sessionOn && game.sessionState==="ended")){
         spreadTick(dt);
         step(dt);
-      } else {
-        // One-time end toast
-        if(!game.endShown){
-          toast(`Session Ende. Score: <b>${game.metrics.score}</b> • Qualität: <b>${Math.round(game.metrics.quality)}%</b>`, "Done");
-          game.endShown = true;
-        }
       }
+
+      runDemo(dt);
 
       draw();
       updateHUD();
 
-      const el = document.getElementById("toast");
-      if(el.classList.contains("show") && (t - game.toastAt) > 2200){
-        el.classList.remove("show");
-      }
-
       requestAnimationFrame(frame);
     }
 
-    // ===== Boot =====
     resize();
     initLevel(0);
-    syncSessionUI();
     requestAnimationFrame(frame);
   </script>
 </body>

@@ -167,7 +167,7 @@
           </span>
         </div>
         <div class="sub">
-          Fixe rote Fehler und merge Dubletten. (Tipp: Ghost-Tap = teuer & lokal.)
+          Fixe Fehler. Merge Dubletten. 💙
         </div>
       </div>
 
@@ -310,8 +310,8 @@
     const IMPACTS_DUP = [
       { stars: 2, text: "Ich existiere doppelt – Support findet meinen Vorgang nicht.", area:"Support", cost:[220, 800], score:-110 },
       { stars: 2, text: "Doppelte Rechnung – bitte klären!", area:"Finance", cost:[260, 950], score:-130 },
-      { stars: 1, text: "Ich habe zwei Kundenkonten – Punkte & Historie sind weg.", area:"CRM", cost:[180, 650], score:-85 },
-      { stars: 2, text: "Retouren wegen falscher Zuordnung (Dublette).", area:"Shop/WMS", cost:[240, 1000], score:-120 }
+      { stars: 1, text: "Zwei Kundenkonten – Punkte & Historie sind weg.", area:"CRM", cost:[180, 650], score:-85 },
+      { stars: 2, text: "Falsche Zuordnung wegen Dublette.", area:"Shop/WMS", cost:[240, 1000], score:-120 }
     ];
 
     const IMPACTS = [
@@ -341,7 +341,7 @@
         this.originSys=0;  // stays here
         this.repTo=0;      // replicated up to system index
         this.localFixTo=-1; // local patch up to sys index (ghost fix), origin still wrong
-        this.localMergeTo=-1; // local dedupe mapping in downstream (ghost merge), origin still duplicated
+        this.localMergeTo=-1; // local mapping/merge in downstream, origin still duplicated
         this.id = Math.random().toString(16).slice(2);
         this.link=null;
         this.jitter=rnd(0,1000);
@@ -380,7 +380,7 @@
       systemPopup:{ active:false, x:0, y:0, data:null, until:0 },
 
       toastAt:0,
-      help:{ seenGhostTip:false, seenGhostDupTip:false }
+      help:{ seenGhostTip:false }
     };
 
     let baseline = { taken:false, mdmState:false, quality:0, cost:0, score:0 };
@@ -441,7 +441,7 @@
     // Metrics
     // =========================
     function effectiveStateAtSys(r, sysIdx){
-      // Downstream patches can mask symptoms, but don't clean the origin truth.
+      // Downstream patches can mask symptoms, but don't clean origin truth.
       if(r.localFixTo >= sysIdx) return "good";
       if(r.localMergeTo >= sysIdx && (r.state==="dupA" || r.state==="dupB")) return "good";
       return r.state;
@@ -738,9 +738,8 @@
           game.records.push(b);
         }
 
-        // local patches are fragile: can relapse (more likely the further down you patched)
         if(!game.mdm){
-          // local patches are fragile
+          // local patches/mappings are fragile
           if(r.localFixTo >= 2){
             const frac = r.localFixTo / Math.max(1, (game.systems.length-1));
             const relapse = (0.010 + frac*0.020) * dt * taskFactor;
@@ -1068,7 +1067,7 @@
           const ox = Math.cos(t*1.3) * 14;
           const oy = Math.sin(t*1.1) * 10;
 
-          // if it is a local patch, show a tiny "bandage" mark
+          // if it is a local patch/mapping, show a tiny mark
           const patched = (r.localFixTo >= i && i>=2);
           const mapped  = ((r.state==="dupA"||r.state==="dupB") && r.localMergeTo >= i && i>=2);
 
@@ -1079,7 +1078,6 @@
           ctx.fill();
 
           if(patched){
-            // bandage mark
             ctx.strokeStyle="rgba(255,255,255,.20)";
             ctx.lineWidth=1;
             ctx.beginPath();
@@ -1088,7 +1086,6 @@
             ctx.stroke();
           }
           if(mapped){
-            // chain link mark
             ctx.strokeStyle="rgba(255,255,255,.22)";
             ctx.lineWidth=1;
             ctx.beginPath();
@@ -1346,15 +1343,11 @@
       if(sysIdx < 2) return; // early fix should happen at origin
       if(r.state==="good") return;
 
-      // One-time micro-tip (keeps UI clean)
       if(!game.help.seenGhostTip){
         game.help.seenGhostTip = true;
-        toast("Replikat-Tap = Lokalfix: teuer, nur symptomatisch, kann zurückkommen.", "Tipp");
+        toast("Replikat-Tap = Downstream-Fix: teuer, symptomatisch, kann zurückkommen.", "Tipp");
       }
 
-      // Downstream handling differs by problem type:
-      // - bad: local patch (address/order fix in Shop/WMS/Finance)
-      // - dup: local mapping/merge (e.g., ID-Mapping in Support/Finance), origin still duplicated
       const isDup = (r.state==="dupA" || r.state==="dupB");
 
       const base = isDup ? 210 : 160;
@@ -1376,7 +1369,7 @@
       }
     }
 
-    function mergeDupPair    function mergeDupPair(r){
+    function mergeDupPair(r){
       if(!r) return false;
       if(game.sessionOn && game.sessionState!=="live") return false;
       if(!(r.state==="dupA" || r.state==="dupB") || !r.link) return false;
@@ -1390,8 +1383,8 @@
 
       r.state="good";
       r.link=null;
-      r.localMergeTo = -1;
-      r.localFixTo = -1;
+      r.localFixTo=-1;
+      r.localMergeTo=-1;
       game.records.splice(otherIndex,1);
 
       game.metrics.fixes += 2;
@@ -1553,14 +1546,9 @@
       if(game.task){
         game.demo.nextActionIn -= dt;
         if(game.demo.nextActionIn > 0) return;
-        game.demo.nextActionIn = 0.85 + Math.random()*0.55;
+        game.demo.nextActionIn = 1.0 + Math.random()*0.7;
 
-        // Mostly correct to show flow, sometimes wrong to demonstrate consequences
-        if(Math.random() < 0.82){
-          resolveTask(true);
-        } else {
-          resolveTask(false);
-        }
+        if(Math.random() < 0.82){ resolveTask(true); } else { resolveTask(false); }
         return;
       }
 

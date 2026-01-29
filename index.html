@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Love your Data 💙 – Complete v3</title>
+  <title>Love your Data 💙 – Complete v4</title>
   <style>
     :root{
       --bg:#0b0f17;
@@ -304,6 +304,13 @@
       }
     ];
 
+    const IMPACTS_DUP = [
+      { stars: 2, text: "Ich existiere doppelt – Support findet meinen Vorgang nicht.", area:"Support", cost:[220, 800], score:-110 },
+      { stars: 2, text: "Doppelte Rechnung – bitte klären!", area:"Finance", cost:[260, 950], score:-130 },
+      { stars: 1, text: "Ich habe zwei Kundenkonten – Punkte & Historie sind weg.", area:"CRM", cost:[180, 650], score:-85 },
+      { stars: 2, text: "Retouren wegen falscher Zuordnung (Dublette).", area:"Shop/WMS", cost:[240, 1000], score:-120 }
+    ];
+
     const IMPACTS = [
       { stars: 1, text: "Bestellung nie angekommen.", area: "Versand",       cost: [350, 900],  score: -120 },
       { stars: 2, text: "Rechnung falsch – muss ich wieder hinterherlaufen?", area:"Finance",   cost: [220, 700],  score: -90 },
@@ -331,6 +338,7 @@
         this.originSys=0;  // stays here
         this.repTo=0;      // replicated up to system index
         this.localFixTo=-1; // local patch up to sys index (ghost fix), origin still wrong
+        this.localMergeTo=-1; // local dedupe mapping in downstream (ghost merge), origin still duplicated
         this.id = Math.random().toString(16).slice(2);
         this.link=null;
         this.jitter=rnd(0,1000);
@@ -368,7 +376,8 @@
 
       systemPopup:{ active:false, x:0, y:0, data:null, until:0 },
 
-      toastAt:0
+      toastAt:0,
+      help:{ seenGhostTip:false, seenGhostDupTip:false }
     };
 
     let baseline = { taken:false, mdmState:false, quality:0, cost:0, score:0 };
@@ -429,26 +438,29 @@
     // Metrics
     // =========================
     function effectiveStateAtSys(r, sysIdx){
-      // If local fix exists up to this system, replica is "patched" (even if origin still bad)
+      // Downstream patches can mask symptoms, but don't clean the origin truth.
       if(r.localFixTo >= sysIdx) return "good";
+      if(r.localMergeTo >= sysIdx && (r.state==="dupA" || r.state==="dupB")) return "good";
       return r.state;
     }
 
     function computeQuality(){
       // quality should reflect "real world": upstream truth is what matters most, but patched late helps a bit
-      let bad=0, dup=0, patched=0;
+      let bad=0, dup=0, patched=0, mapped=0;
       for(const r of game.records){
         if(r.state==="bad") bad++;
         if(r.state==="dupA" || r.state==="dupB") dup++;
         if(r.localFixTo >= 2) patched++;
+        if(r.localMergeTo >= 2) mapped++;
       }
       const total = game.records.length || 1;
 
       // base penalty from truth
       let q = 100 - (bad/total)*62 - (dup/total)*52;
 
-      // small relief if many late local patches exist (still not great)
+      // small relief if many late local patches / dedupe mappings exist (still not great)
       q += (patched/total)*10;
+      q += (mapped/total)*8;
 
       q = clamp(q, 0, 100);
       game.metrics.errors = bad;
@@ -662,7 +674,9 @@
         const p = clamp(0.16 + lateSignal*0.75 + taskBoost, 0, 0.95);
         if(Math.random() < p){
           const damp = game.mdm ? 0.35 : 1.0;
-          const imp = IMPACTS[(Math.random()*IMPACTsLen)|0];
+          const useDup = (dupLate > badLate) && (Math.random() < 0.75);
+          const pool = useDup ? IMPACTS_DUP : IMPACTS;
+          const imp = pool[(Math.random()*pool.length)|0];
           const spike = (imp.cost[0] + Math.random()*(imp.cost[1]-imp.cost[0])) * damp;
           game.metrics.cost += spike;
           game.metrics.score += Math.round(imp.score * damp);
@@ -722,13 +736,24 @@
         }
 
         // local patches are fragile: can relapse (more likely the further down you patched)
-        if(r.localFixTo >= 2 && !game.mdm){
-          const frac = r.localFixTo / Math.max(1, (game.systems.length-1));
-          const relapse = (0.010 + frac*0.020) * dt * taskFactor; // ~1-3% per sec during tasks
-          if(Math.random() < relapse){
-            r.localFixTo = -1;
-            // small: no toast spam; only sometimes
-            if(Math.random() < 0.15) toast("Lokalfix ist wieder aufgetaucht – Ursprung war nie sauber.", "Folgesystem");
+        if(!game.mdm){
+          // local patches are fragile
+          if(r.localFixTo >= 2){
+            const frac = r.localFixTo / Math.max(1, (game.systems.length-1));
+            const relapse = (0.010 + frac*0.020) * dt * taskFactor;
+            if(Math.random() < relapse){
+              r.localFixTo = -1;
+        r.localMergeTo = -1;
+              if(Math.random() < 0.15) toast("Lokalfix ist wieder aufgetaucht – Ursprung war nie sauber.", "Folgesystem");
+            }
+          }
+          if(r.localMergeTo >= 2){
+            const frac = r.localMergeTo / Math.max(1, (game.systems.length-1));
+            const relapse = (0.008 + frac*0.016) * dt * taskFactor;
+            if(Math.random() < relapse){
+              r.localMergeTo = -1;
+              if(Math.random() < 0.12) toast("Downstream-Mapping ist wieder inkonsistent – Dublette am Ursprung bleibt.", "Folgesystem");
+            }
           }
         }
       }
@@ -760,7 +785,8 @@
         if(r.state==="good") continue;
 
         // if everything up to repTo is patched, late cost is reduced, but still some admin overhead
-        const patchedAll = (r.localFixTo >= r.repTo && r.repTo >= 2);
+        const patchedAll = (r.localFixTo >= r.repTo && r.repTo >= 2)
+                       || ((r.state==="dupA"||r.state==="dupB") && r.localMergeTo >= r.repTo && r.repTo >= 2);
         const baseAdmin = patchedAll ? 0.25 : 0.0;
 
         const frac = (r.repTo / Math.max(1, (game.systems.length-1)));
@@ -1041,18 +1067,29 @@
 
           // if it is a local patch, show a tiny "bandage" mark
           const patched = (r.localFixTo >= i && i>=2);
+          const mapped  = ((r.state==="dupA"||r.state==="dupB") && r.localMergeTo >= i && i>=2);
 
           ctx.fillStyle = col;
+          const rr = (patched || mapped) ? 5.0 : 4.2;
           ctx.beginPath();
-          ctx.arc(s.x+ox, s.y+oy, patched ? 5.0 : 4.2, 0, Math.PI*2);
+          ctx.arc(s.x+ox, s.y+oy, rr, 0, Math.PI*2);
           ctx.fill();
 
           if(patched){
+            // bandage mark
             ctx.strokeStyle="rgba(255,255,255,.20)";
             ctx.lineWidth=1;
             ctx.beginPath();
             ctx.moveTo(s.x+ox-3.0, s.y+oy);
             ctx.lineTo(s.x+ox+3.0, s.y+oy);
+            ctx.stroke();
+          }
+          if(mapped){
+            // chain link mark
+            ctx.strokeStyle="rgba(255,255,255,.22)";
+            ctx.lineWidth=1;
+            ctx.beginPath();
+            ctx.arc(s.x+ox, s.y+oy, 2.2, 0, Math.PI*2);
             ctx.stroke();
           }
         }
@@ -1288,6 +1325,7 @@
       if(r.state==="bad"){
         r.state="good";
         r.localFixTo=-1; // origin fix makes patches unnecessary
+        r.localMergeTo=-1;
         r.link=null;
         game.metrics.fixes++;
         game.metrics.score += 40;
@@ -1305,20 +1343,37 @@
       if(sysIdx < 2) return; // early fix should happen at origin
       if(r.state==="good") return;
 
-      // cost and score based on distance
-      const base = 160;
-      const per  = 160;
+      // One-time micro-tip (keeps UI clean)
+      if(!game.help.seenGhostTip){
+        game.help.seenGhostTip = true;
+        toast("Replikat-Tap = Lokalfix: teuer, nur symptomatisch, kann zurückkommen.", "Tipp");
+      }
+
+      // Downstream handling differs by problem type:
+      // - bad: local patch (address/order fix in Shop/WMS/Finance)
+      // - dup: local mapping/merge (e.g., ID-Mapping in Support/Finance), origin still duplicated
+      const isDup = (r.state==="dupA" || r.state==="dupB");
+
+      const base = isDup ? 210 : 160;
+      const per  = isDup ? 180 : 160;
       const spike = base + (sysIdx-1)*per * (game.mdm ? 0.65 : 1.0);
 
-      r.localFixTo = Math.max(r.localFixTo, sysIdx);
-      game.metrics.fixes++;
-      game.metrics.cost += spike;
-      game.metrics.score -= Math.round(28 + sysIdx*8);
-
-      toast(`🩹 Lokalfix in <b>${game.systems[sysIdx]?.label || ("SYS "+(sysIdx+1))}</b> — teuer, Ursprung bleibt falsch <span class="tag">+${fmtEuro(spike)}</span>`, "Folgesystem");
+      if(isDup){
+        r.localMergeTo = Math.max(r.localMergeTo, sysIdx);
+        game.metrics.fixes++;
+        game.metrics.cost += spike;
+        game.metrics.score -= Math.round(34 + sysIdx*9);
+        toast(`🔗 Downstream-Mapping in <b>${game.systems[sysIdx]?.label || ("SYS "+(sysIdx+1))}</b> — Dublette am Ursprung bleibt <span class="tag">+${fmtEuro(spike)}</span>`, "Folgesystem");
+      } else {
+        r.localFixTo = Math.max(r.localFixTo, sysIdx);
+        game.metrics.fixes++;
+        game.metrics.cost += spike;
+        game.metrics.score -= Math.round(28 + sysIdx*8);
+        toast(`🩹 Lokalfix in <b>${game.systems[sysIdx]?.label || ("SYS "+(sysIdx+1))}</b> — teuer, Ursprung bleibt falsch <span class="tag">+${fmtEuro(spike)}</span>`, "Folgesystem");
+      }
     }
 
-    function mergeDupPair(r){
+    function mergeDupPair    function mergeDupPair(r){
       if(!r) return false;
       if(game.sessionOn && game.sessionState!=="live") return false;
       if(!(r.state==="dupA" || r.state==="dupB") || !r.link) return false;
@@ -1332,6 +1387,8 @@
 
       r.state="good";
       r.link=null;
+      r.localMergeTo = -1;
+      r.localFixTo = -1;
       game.records.splice(otherIndex,1);
 
       game.metrics.fixes += 2;
@@ -1537,6 +1594,7 @@
         r.originSys = 0;
         r.repTo = 0;
         r.localFixTo = -1;
+        r.localMergeTo = -1;
         game.records.push(r);
       }
 
@@ -1572,7 +1630,7 @@
       game.mdm = !game.mdm;
       // MDM removes need for local patches
       if(game.mdm){
-        for(const r of game.records) r.localFixTo = -1;
+        for(const r of game.records){ r.localFixTo = -1; r.localMergeTo = -1; }
       }
       syncMdmUI();
       toast(game.mdm ? "MDM aktiviert — weniger Entstehung + bessere Verteilungskontrolle." : "MDM deaktiviert — mehr Entstehung & späte Folgen.", "MDM");

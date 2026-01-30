@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Love your Data 💙 – Complete v13.9</title>
+  <title>Love your Data 💙 – Complete v14.3</title>
   <style>
     :root{
       --bg:#0b0f17;
@@ -360,7 +360,7 @@
     [data-stat="time"], [data-stat="score"], [data-stat="productivity"] { display:none !important; }
 
     /* 13.7: hard hide for time/score/productivity ids */
-    #timeVal, #scoreVal, #prodVal, #prodBar { display:none !important; }
+    #timeVal, #sysVal, #repVal , #recVal, #fixVal, #costVal, #qBar, #prodBar, #qVal, #errVal, #spreadVal, #dupVal, #scoreVal, #prodVal, #prodBar { display:none !important; }
 
     /* 13.8: Stats grid = 4 tiles (Qualität, Systeme, Datensätze, Dubletten) */
     #hudWrap .stats, .hud .stats, .hudStats, #stats {
@@ -389,6 +389,23 @@
     .hud .stats > :nth-child(-n+4) .k {
       display:block !important;
     }
+
+    /* 14.0: Zen button */
+    #btnZen{
+      position:absolute;
+      top:8px; right:10px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(140,170,230,.25);
+      background:rgba(10,16,28,.55);
+      color:#e6ecff;
+      font-weight:700;
+      font-size:12px;
+      letter-spacing:.2px;
+      cursor:pointer;
+      z-index:80;
+    }
+    #btnZen:hover{ background:rgba(10,16,28,.7); }
 </style>
 
 </head>
@@ -434,43 +451,46 @@
 
     <div class="hud">
       <div class="stat">
-        <div class="k">Qualität</div>
-        <div class="v"><span id="qVal">100</span>%</div>
-        <div class="bar"><i id="qBar" style="width:100%"></i></div>
+    <!--    <div class="k">Qualität</div> -->
+        <div class="v"><span id="qVal">100</span></div>
+        <div class="bar"><i id="qBar" style="width:0%"></i></div>
       </div>
       <div class="stat">
-        <div class="k">Systeme</div>
+    <!--    <div class="k">Systeme</div> -->
         <div class="v" id="sysVal">1</div>
-        <div class="k" style="margin-top:2px;">Replikation</div>
+    <!--    <div class="k" style="margin-top:2px;">Replikation</div> -->
         <div class="v" id="spreadVal">niedrig</div>
       </div>
       <div class="stat">
-        <div class="k">Datensätze</div>
+    <!--    <div class="k">Datensätze</div> -->
         <div class="v" id="recVal">10</div>
-        <div class="k" style="margin-top:2px;">Fehler (rot)</div>
+    <!--    <div class="k" style="margin-top:2px;">Fehler (rot)</div> -->
         <div class="v" id="errVal">0</div>
       </div>
       <div class="stat">
-        <div class="k">Dubletten (orange)</div>
+    <!--    <div class="k">Dubletten (orange)</div> -->
         <div class="v" id="dupVal">0</div>
-        <div class="k" style="margin-top:2px;">Fixes</div>
+    <!--    <div class="k" style="margin-top:2px;">Fixes</div> -->
         <div class="v" id="fixVal">0</div>
       </div>
       <div class="stat">
-        <div class="k">Kosten</div>
+    <!--    <div class="k">Kosten</div> -->
         <div class="v" id="costVal">0 €</div>
-        <div class="k" style="margin-top:2px;">Zeit</div>
+    <!--    <div class="k" style="margin-top:2px;">Zeit</div> -->
         <div class="v" id="timeVal">0.0</div>
       </div>
       <div class="stat">
-        <div class="k">Score (Session)</div>
+    <!--    <div class="k">Score (Session)</div> -->
         <div class="v" id="scoreVal">0</div>
-        <div class="k" style="margin-top:2px;">Produktivität</div>
-        <div class="v"><span id="prodVal">100</span>%</div>
-        <div class="bar"><i id="prodBar" style="width:100%"></i></div>
+    <!--    <div class="k" style="margin-top:2px;">Produktivität</div> -->
+        <div class="v"><span id="prodVal">100</span></div>
+        <div class="bar"><i id="prodBar" style="width:0%"></i></div>
       </div>
     </div>
-    </div><!-- /hudWrap -->
+    
+    <button id="btnZen" title="Zen Mode" aria-label="Zen Mode">🧘 Zen</button>
+
+</div><!-- /hudWrap -->
 
     <!-- Toast Zone (fixed by layout) -->
     <div id="toastZoneWrap">
@@ -1500,7 +1520,6 @@ game.taskRects = [];
 
       ctx.fillStyle="rgba(156,163,175,.9)";
       ctx.font="700 12px system-ui";
-      ctx.fillText("Share: Button oben • Reset: neue Runde", px+18, py+248);
       ctx.restore();
     }
 
@@ -2270,9 +2289,25 @@ game.taskRects = [];
       miniSetup();
     }
 
+    // 14.2: public trigger for the Zen minigame (demo button / console)
+    function startZenGame(){
+      try{
+        if(typeof mini !== 'undefined' && mini && mini.active) return;
+        openMini();
+      }catch(e){
+        console.error(e);
+      }
+    }
+    window.startZenGame = startZenGame;
+
+    
+
+
     function closeMini(){
       if(!mini.active) return;
       mini.active = false;
+      game.miniPaused = false;
+      try{ requestAnimationFrame(frame); }catch(e){}
       el("miniWrap").classList.add("hidden");
       game.miniPaused = false;
       if(!mini.bonusAwarded){
@@ -2484,6 +2519,18 @@ function layoutTight(){
  hideHudFields();
     hideExtraHudRows(); });
 
+
+    // 14.0: Zen button handler
+    (function(){
+      const btn = document.getElementById('btnZen');
+      if(!btn) return;
+      btn.addEventListener('click', ()=>{
+        try{
+          if(typeof window.startZenGame === 'function'){ window.startZenGame(); return; }
+          console.warn('Zen game function not found');
+        }catch(e){ console.error(e); }
+      });
+    })();
 </script>
 
   

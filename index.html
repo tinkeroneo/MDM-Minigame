@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Love your Data 💙 – Complete v14.3</title>
+  <title>Love your Data 💙 – Complete v14.7</title>
   <style>
     :root{
       --bg:#0b0f17;
@@ -252,7 +252,7 @@
     .hudLevelTiny{ font-size:14px; color: rgba(234,240,255,.68); font-weight:800; }
     body.hudCollapsed .hudChevron{ transform: rotate(-90deg); }
     .hudChevron{ opacity:.8; font-size:18px; transition: transform .18s ease; }
-    .hudWrap{ }
+    .hudWrap{ position:relative; }
     body.hudCollapsed #hudWrap header{ display:none; }
     body.hudCollapsed #hudWrap{ margin-top: -2px; }
     body.hudCollapsed #hudWrap .hud{ display:flex; }
@@ -360,7 +360,7 @@
     [data-stat="time"], [data-stat="score"], [data-stat="productivity"] { display:none !important; }
 
     /* 13.7: hard hide for time/score/productivity ids */
-    #timeVal, #sysVal, #repVal , #recVal, #fixVal, #costVal, #qBar, #prodBar, #qVal, #errVal, #spreadVal, #dupVal, #scoreVal, #prodVal, #prodBar { display:none !important; }
+    #timeVal, #scoreVal, #prodVal, #prodBar { display:none !important; }
 
     /* 13.8: Stats grid = 4 tiles (Qualität, Systeme, Datensätze, Dubletten) */
     #hudWrap .stats, .hud .stats, .hudStats, #stats {
@@ -390,22 +390,22 @@
       display:block !important;
     }
 
-    /* 14.0: Zen button */
-    #btnZen{
-      position:absolute;
-      top:8px; right:10px;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid rgba(140,170,230,.25);
-      background:rgba(10,16,28,.55);
-      color:#e6ecff;
-      font-weight:700;
-      font-size:12px;
-      letter-spacing:.2px;
-      cursor:pointer;
-      z-index:80;
+    
+    /* 14.4: Zen button (toolbar) */
+    #btnZen.ghost{
+      border-color: rgba(100,133,193,.45) !important;
+      background: rgba(100,133,193,.10) !important;
     }
-    #btnZen:hover{ background:rgba(10,16,28,.7); }
+    #btnZen.ghost:hover{
+      background: rgba(100,133,193,.16) !important;
+    }
+
+    /* 14.5: keep HUD minimal (only 4 stat tiles) */
+    .hud > .stat:nth-child(n+5){ display:none !important; }
+    /* 14.5: hide remaining time/score/productivity elements defensively */
+    #timeVal,#scoreVal,#prodVal,#prodBar,#timerPill,[data-stat="time"],[data-stat="score"],[data-stat="productivity"]{
+      display:none !important;
+    }
 </style>
 
 </head>
@@ -444,6 +444,7 @@
         <button id="btnHeal" class="primary" style="display:none;">Stammdatenfehler beheben</button>
         <button id="btnSession" class="ghost">Session: On</button>
         <button id="btnDemo" class="ghost">Demo: Off</button>
+        <button id="btnZen" class="ghost" title="Zen Game">🧘 Zen</button>
         <button id="btnShare" class="primary">Share</button>
         <button id="btnReset" class="danger">Reset</button>
       </div>
@@ -451,45 +452,42 @@
 
     <div class="hud">
       <div class="stat">
-    <!--    <div class="k">Qualität</div> -->
-        <div class="v"><span id="qVal">100</span></div>
-        <div class="bar"><i id="qBar" style="width:0%"></i></div>
+        <div class="k">Qualität</div>
+        <div class="v"><span id="qVal">100</span>%</div>
+        <div class="bar"><i id="qBar" style="width:100%"></i></div>
       </div>
       <div class="stat">
-    <!--    <div class="k">Systeme</div> -->
+        <div class="k">Systeme</div>
         <div class="v" id="sysVal">1</div>
-    <!--    <div class="k" style="margin-top:2px;">Replikation</div> -->
+        <div class="k" style="margin-top:2px;">Replikation</div>
         <div class="v" id="spreadVal">niedrig</div>
       </div>
       <div class="stat">
-    <!--    <div class="k">Datensätze</div> -->
+        <div class="k">Datensätze</div>
         <div class="v" id="recVal">10</div>
-    <!--    <div class="k" style="margin-top:2px;">Fehler (rot)</div> -->
+        <div class="k" style="margin-top:2px;">Fehler (rot)</div>
         <div class="v" id="errVal">0</div>
       </div>
       <div class="stat">
-    <!--    <div class="k">Dubletten (orange)</div> -->
+        <div class="k">Dubletten (orange)</div>
         <div class="v" id="dupVal">0</div>
-    <!--    <div class="k" style="margin-top:2px;">Fixes</div> -->
+        <div class="k" style="margin-top:2px;">Fixes</div>
         <div class="v" id="fixVal">0</div>
       </div>
       <div class="stat">
-    <!--    <div class="k">Kosten</div> -->
+        <div class="k">Kosten</div>
         <div class="v" id="costVal">0 €</div>
-    <!--    <div class="k" style="margin-top:2px;">Zeit</div> -->
+        <div class="k" style="margin-top:2px;">Zeit</div>
         <div class="v" id="timeVal">0.0</div>
       </div>
       <div class="stat">
-    <!--    <div class="k">Score (Session)</div> -->
+        <div class="k">Score (Session)</div>
         <div class="v" id="scoreVal">0</div>
-    <!--    <div class="k" style="margin-top:2px;">Produktivität</div> -->
-        <div class="v"><span id="prodVal">100</span></div>
-        <div class="bar"><i id="prodBar" style="width:0%"></i></div>
+        <div class="k" style="margin-top:2px;">Produktivität</div>
+        <div class="v"><span id="prodVal">100</span>%</div>
+        <div class="bar"><i id="prodBar" style="width:100%"></i></div>
       </div>
     </div>
-    
-    <button id="btnZen" title="Zen Mode" aria-label="Zen Mode">🧘 Zen</button>
-
 </div><!-- /hudWrap -->
 
     <!-- Toast Zone (fixed by layout) -->
@@ -1520,6 +1518,7 @@ game.taskRects = [];
 
       ctx.fillStyle="rgba(156,163,175,.9)";
       ctx.font="700 12px system-ui";
+      ctx.fillText("Share: Button oben • Reset: neue Runde", px+18, py+248);
       ctx.restore();
     }
 
@@ -2183,7 +2182,7 @@ game.taskRects = [];
 
     el("btnShare").addEventListener("click", ()=>shareCanvasPNG());
     el("btnHeal").addEventListener("click", ()=>healAllWithMdm());
-    (() => { const e = document.getElementById("btnMiniClose"); if(e) e.addEventListener("click", closeMini); })();    // --- Mini Game: Data Zen (Memory) ---
+        // --- Mini Game: Data Zen (Memory) ---
     // Pops up after longer cleanliness in MDM mode. Calm, quick, mobile-friendly.
     const mini = {
       active:false,
@@ -2383,6 +2382,16 @@ el("btnReset").addEventListener("click", ()=>{
     }
 
     // Boot
+
+
+    // 14.4: bind mini close after DOM is ready + alias for demos
+    window.addEventListener('DOMContentLoaded', ()=>{
+      const closeBtn = document.getElementById('btnMiniClose');
+      if(closeBtn) closeBtn.addEventListener('click', closeMini);
+      window.zen = ()=>{ try{ if(typeof window.startZenGame==='function') window.startZenGame(); }catch(e){ console.error(e); } };
+    });
+
+// Boot
     resize();
     initLevel(0);
     requestAnimationFrame(frame);
@@ -2520,13 +2529,16 @@ function layoutTight(){
     hideExtraHudRows(); });
 
 
-    // 14.0: Zen button handler
+    
+    // 14.4: Zen button handler (toolbar + safe fallback)
     (function(){
       const btn = document.getElementById('btnZen');
       if(!btn) return;
       btn.addEventListener('click', ()=>{
         try{
+          console.log('[Zen] click');
           if(typeof window.startZenGame === 'function'){ window.startZenGame(); return; }
+          if(window.lyd && typeof window.lyd.mini === 'function'){ window.lyd.mini(); return; }
           console.warn('Zen game function not found');
         }catch(e){ console.error(e); }
       });

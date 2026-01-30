@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Love your Data 💙 – Complete v8</title>
+  <title>Love your Data 💙 – Complete v13.9</title>
   <style>
     :root{
       --bg:#0b0f17;
@@ -151,10 +151,259 @@
       header{padding:12px 14px;}
       .stage{min-height: 520px;}
     }
-  </style>
+  
+    /* Mini game overlay */
+    .mini{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+      background:rgba(6,10,18,.72); z-index:80; padding:16px; }
+    .mini.hidden{ display:none; }
+    .miniCard{ width:min(420px, 92vw); background:rgba(18,22,34,.95);
+      border:1px solid rgba(255,255,255,.08); border-radius:18px;
+      box-shadow:0 18px 70px rgba(0,0,0,.45); padding:14px 14px 16px; }
+    .miniHead{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .miniTitle{ font-weight:800; letter-spacing:.2px; }
+    .miniClose{ border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.06);
+      color:#eaf0ff; border-radius:12px; padding:8px 10px; font-weight:700; }
+    .miniSub{ margin:6px 0 10px; color:rgba(234,240,255,.70); font-size:13px; }
+    #miniCanvas{ width:100%; height:auto; border-radius:14px; background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06); }
+    .miniControls{ display:flex; gap:8px; margin-top:10px; }
+    .miniBtn{ flex:1; border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.07);
+      color:#eaf0ff; border-radius:14px; padding:10px 10px; font-weight:800; }
+    .miniBtn.wide{ flex:1.4; }
+    .miniFooter{ display:flex; justify-content:space-between; align-items:center; margin-top:10px; color:rgba(234,240,255,.82); }
+
+    .miniGrid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px; }
+    .miniTile{
+      aspect-ratio: 1 / 1;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.06);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+      letter-spacing:.3px;
+      color:rgba(234,240,255,.90);
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .miniTile:active{ transform: scale(.98); }
+    .miniTile .face{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .miniTile .back{ background:rgba(100,133,193,.16); }
+    .miniTile.flipped{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.16); }
+    .miniTile.matched{ background:rgba(100,133,193,.18); border-color:rgba(100,133,193,.35); }
+
+
+
+    /* Toast (mobile-safe, non-blocking) */
+    .toastWrap{display:none !important;}
+
+    .toastCard{position:relative;margin:8px auto 0 auto;pointer-events:auto;min-width:min(520px, calc(100vw - 24px));max-width:min(720px, calc(100vw - 24px));border-radius:18px;padding:12px 14px;background:rgba(10,16,28,.72);border:1px solid rgba(140,170,230,.18);backdrop-filter: blur(10px);-webkit-backdrop-filter: blur(10px);box-shadow: 0 14px 38px rgba(0,0,0,.28);opacity:0;transform:translateY(6px);transition:opacity .18s ease, transform .18s ease;}
+    .toastHead{ font-weight:900; margin-bottom:4px; color: rgba(234,240,255,.92); }
+    .toastBody{ color: rgba(234,240,255,.78); }
+    .toastBody b{font-weight:900;}
+    .toastBody .tag{
+      display:inline-flex; align-items:center; gap:6px;
+      margin-left:8px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-size: 12px;
+      color: var(--muted);
+      white-space:nowrap;
+    }
+
+
+    /* Mobile-first layout fix (11.1) */
+    @media (max-width: 520px){
+      .topRow{ flex-direction: column; align-items: stretch; gap:10px; }
+      .topLeft{ width:100%; }
+      .topRight{ width:100%; display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px; }
+      .topRight .btn{ flex: 1 1 auto; min-width: 120px; }
+      .panel{ padding: 14px; }
+      .boardWrap{ padding: 12px; }
+      canvas{ max-width:100%; height:auto; }
+    }
+
+
+    /* Collapsible top area (11.3) */
+    .hudToggle{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      margin: 0 0 10px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      color: rgba(234,240,255,.92);
+      font-weight:900;
+      letter-spacing:.2px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hudToggleLeft{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+    .hudTitle{ font-size:18px; }
+    .hudLevelTiny{ font-size:14px; color: rgba(234,240,255,.68); font-weight:800; }
+    body.hudCollapsed .hudChevron{ transform: rotate(-90deg); }
+    .hudChevron{ opacity:.8; font-size:18px; transition: transform .18s ease; }
+    .hudWrap{ }
+    body.hudCollapsed #hudWrap header{ display:none; }
+    body.hudCollapsed #hudWrap{ margin-top: -2px; }
+    body.hudCollapsed #hudWrap .hud{ display:flex; }
+
+
+    @media (min-width: 760px){
+      .hudToggle{ max-width: 720px; }
+    }
+
+
+    /* 11.4: ensure collapse works + remove duplicate title */
+    #hudWrap header h1{ display:none; }
+    #hudWrap header .brand{ display:none; }
+
+
+    /* Task Bottom Sheet (12.5) */
+    .taskSheet{
+      position:fixed;
+      left:12px;
+      right:12px;
+      bottom:max(12px, env(safe-area-inset-bottom));
+      z-index:60;
+      padding:12px 12px 14px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(17,24,39,.90);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      pointer-events:auto;
+    }
+    .taskBar{ height:8px; border-radius:999px; background: rgba(255,255,255,.08); overflow:hidden; margin-bottom:10px; }
+    .taskBarFill{ height:100%; width:100%; border-radius:999px; background: rgba(34,197,94,.78); }
+    .taskTitle{ font-weight:950; font-size:16px; color: rgba(234,240,255,.92); margin-bottom:6px; }
+    .taskPrompt{ color: rgba(234,240,255,.72); font-size:14px; line-height:1.25; margin-bottom:12px; }
+    .taskBtns{ display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
+    .taskBtn{
+      padding:12px 10px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(234,240,255,.90);
+      font-weight:900;
+      font-size:13px;
+      line-height:1.1;
+      min-height:48px;
+    }
+    .taskBtn:active{ transform: translateY(1px); }
+    @media (max-width: 380px){
+      .taskBtns{ grid-template-columns: 1fr; }
+    }
+
+
+    /* 12.5 Header quality pill */
+    .qualityPill{
+      padding:4px 10px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:13px;
+      background:rgba(16,185,129,.18);
+      color:#34d399;
+      border:1px solid rgba(52,211,153,.35);
+    }
+
+    /* 12.5: ensure task sheet always wins over toasts */
+    #taskSheet{ z-index: 90; }
+    .qualityFloat{display:none !important;}
+
+        /* 13.2: compact fixed toast zone under stats (doesn't move playfield) */
+    #toastZoneWrap{position:fixed; left:0; right:0; top:var(--toastZoneTop, 140px); z-index:65; pointer-events:none;}
+    #toastZone{margin:0 12px; display:flex; flex-direction:column; gap:8px; align-items:stretch;
+      max-width:720px; margin-left:auto; margin-right:auto;
+    }
+    .zoneToast{pointer-events:auto; border-radius:16px; padding:10px 12px;
+      background:rgba(10,16,28,.72); border:1px solid rgba(140,170,230,.18);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 12px 30px rgba(0,0,0,.26);
+      transform: translateY(-6px); opacity:0; transition: opacity .18s ease, transform .18s ease;
+    }
+    .zoneToast.show{opacity:1; transform: translateY(0);}
+    .zoneToast .tTitle{font-weight:900; letter-spacing:.2px; margin-bottom:4px; font-size:13px; opacity:.88;}
+    .zoneToast .tText{opacity:.95; line-height:1.25; font-size:13px;}
+
+    /* 13.0: micro toast in play area (keeps "toast feel" without blocking stats) */
+    #microToast{position:absolute; right:14px; top:14px; z-index:40; pointer-events:none;
+      max-width:min(240px, calc(100% - 28px));
+      padding:8px 10px; border-radius:999px;
+      background:rgba(10,16,28,.66); border:1px solid rgba(140,170,230,.16);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 10px 26px rgba(0,0,0,.22);
+      opacity:0; transform: translateY(-6px); transition: opacity .16s ease, transform .16s ease;
+      font-weight:700; font-size:13px; letter-spacing:.2px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    #microToast.show{opacity:1; transform: translateY(0);}
+
+    /* 13.5: UI-only hides (keep all logic) */
+    #btnShare, #btnReset { display:none !important; pointer-events:none !important; }
+    /* Common stat ids/classes (safe: only hides visuals) */
+    #statTime, #statScore, .statTime, .statScore, .stat--time, .stat--score,
+    #time, #score, .time, .score { display:none !important; }
+    /* Productivity */
+    #productivity, #prodWrap, #prodBar, .productivity, .prodWrap, .prodBar, .stat--productivity { display:none !important; }
+
+    /* 13.6: extra safety hide (JS hides by label) */
+    [data-stat="time"], [data-stat="score"], [data-stat="productivity"] { display:none !important; }
+
+    /* 13.7: hard hide for time/score/productivity ids */
+    #timeVal, #scoreVal, #prodVal, #prodBar { display:none !important; }
+
+    /* 13.8: Stats grid = 4 tiles (Qualität, Systeme, Datensätze, Dubletten) */
+    #hudWrap .stats, .hud .stats, .hudStats, #stats {
+      grid-template-columns: repeat(4, minmax(0,1fr)) !important;
+    }
+    /* Hide tiles 5+ in any stats grid */
+    #hudWrap .stats > *:nth-child(n+5),
+    .hud .stats > *:nth-child(n+5),
+    .hudStats > *:nth-child(n+5),
+    #stats > *:nth-child(n+5) {
+      display:none !important;
+    }
+
+    /* 13.9: prune stat labels + ensure only 4 allowed tiles */
+    #hudWrap .stats .label, #hudWrap .stats .statLabel, #hudWrap .stats .stat-label, #hudWrap .stats .k,
+    .hud .stats .label, .hud .stats .statLabel, .hud .stats .stat-label, .hud .stats .k {
+      display:none !important;
+    }
+    #hudWrap .stats > :nth-child(-n+4) .label,
+    #hudWrap .stats > :nth-child(-n+4) .statLabel,
+    #hudWrap .stats > :nth-child(-n+4) .stat-label,
+    #hudWrap .stats > :nth-child(-n+4) .k,
+    .hud .stats > :nth-child(-n+4) .label,
+    .hud .stats > :nth-child(-n+4) .statLabel,
+    .hud .stats > :nth-child(-n+4) .stat-label,
+    .hud .stats > :nth-child(-n+4) .k {
+      display:block !important;
+    }
+</style>
+
 </head>
 <body>
   <div class="wrap">
+    <button id="hudToggle" class="hudToggle" type="button" aria-label="Bereich ein-/ausklappen">
+      <span class="hudToggleLeft">
+        <span class="hudTitle">Love your Data</span>
+        <span id="hudLevelTiny" class="hudLevelTiny">Level</span> 
+      </span>
+      <span class="hudChevron">▾</span>
+    </button>
+
+    <div id="hudWrap" class="hudWrap">
+
     <header>
       <div class="brand">
         <div class="t">
@@ -221,15 +470,38 @@
         <div class="bar"><i id="prodBar" style="width:100%"></i></div>
       </div>
     </div>
+    </div><!-- /hudWrap -->
+
+    <!-- Toast Zone (fixed by layout) -->
+    <div id="toastZoneWrap">
+      <div id="toastZone"></div>
+    </div>
+
+
+
+
 
     <div class="stage" id="stage">
       <canvas id="c"></canvas>
-      <div class="toast" id="toast"></div>
+      <div id="microToast" aria-live="polite"></div>
+      
+  <!-- Task Bot
+tom Sheet (12.5) -->
+  <div id="taskSheet" class="taskSheet" style="display:none;">
+    <div class="taskBar"><div id="taskBarFill" class="taskBarFill"></div></div>
+    <div class="taskTitle" id="taskTitle">☎️ Task</div>
+    <div class="taskPrompt" id="taskPrompt">…</div>
+    <div class="taskBtns" id="taskBtns"></div>
+  </div>
+
+<div id="toast" class="toastWrap" style="display:none;"><div class="toastCard" style="opacity:0;"><div class="toastHead"></div><div class="toastBody"></div></div></div>
     </div>
   </div>
 
   <script>
-    // =========================
+    
+function on(id, evt, fn){ const e=document.getElementById(id); if(e) e.addEventListener(evt, fn); }
+// =========================
     // Utilities
     // =========================
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -237,6 +509,19 @@
     const rnd   = (a,b)=>a+Math.random()*(b-a);
     const now   = ()=>performance.now();
     const el = (id)=>document.getElementById(id);
+
+    // HUD collapse / expand (11.3)
+    function syncHudTiny(){
+      const lvl = LEVELS[game.lvlIndex] || {name:""};
+      const t = el("hudLevelTiny");
+      if(t) t.textContent = `Level ${game.lvlIndex+1}: ${lvl.name||""}`.trim();
+    }
+    function setHudCollapsed(collapsed){
+      game.hudCollapsed = !!collapsed;
+      document.body.classList.toggle("hudCollapsed", game.hudCollapsed);
+      try{ localStorage.setItem("lyd_hudCollapsed", game.hudCollapsed ? "1":"0"); }catch(e){}
+    }
+    function toggleHud(){ setHudCollapsed(!game.hudCollapsed); }
 
     function getCSS(varName){ return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
     function fmtEuro(n){ const v = Math.round(n); return v.toLocaleString("de-DE") + " €"; }
@@ -382,6 +667,7 @@
       systemPopup:{ active:false, x:0, y:0, data:null, until:0 },
 
       toastAt:0,
+      toastCooldownUntil:0,
       help:{ seenGhostTip:false }
     };
 
@@ -396,17 +682,43 @@
       };
     }
 
-    function toast(html, tag){
-      const t = el("toast");
-      t.innerHTML = html + (tag ? `<span class="tag">${tag}</span>` : "");
-      t.classList.add("show");
-      game.toastAt = now();
+    function toast(text, kind="info", ttl=2.8, once=false){
+      if(once){ if(seenToasts.has(text)) return; seenToasts.add(text); }
+      const zone = document.getElementById('toastZone');
+      if(!zone) return;
+      const el = document.createElement('div');
+      el.className = 'zoneToast';
+      const title = "Info";
+      el.innerHTML = `<div class=\"tTitle\">${title}</div><div class=\"tText\">${String(text).includes('<') ? text : escapeHtml(text)}</div>`;
+      zone.appendChild(el);
+      // 13.0: micro toast in play area
+      try{
+        const mt = document.getElementById('microToast');
+        if(mt){
+          const short = String(text).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+          mt.textContent = short.length>46 ? short.slice(0,43)+'…' : short;
+          mt.classList.add('show');
+          clearTimeout(mt._t);
+          mt._t = setTimeout(()=> mt.classList.remove('show'), 1400);
+        }
+      }catch(e){}
+
+      // keep only last 2
+      while(zone.children.length>2) zone.removeChild(zone.firstChild);
+      requestAnimationFrame(()=> el.classList.add('show'));
+      setTimeout(()=>{
+        el.classList.remove('show');
+        setTimeout(()=>{ try{ el.remove(); }catch(e){} }, 220);
+      }, Math.max(1200, ttl*1000));
     }
+
 
     // =========================
     // Layout
     // =========================
     function resize(){
+      const bw = document.querySelector('.boardWrap') || document.body;
+      const availW = Math.max(280, bw.clientWidth - 24);
       const r = stage.getBoundingClientRect();
       const dpr = Math.max(1, Math.min(2.25, window.devicePixelRatio || 1));
       canvas.width = Math.floor(r.width * dpr);
@@ -422,16 +734,41 @@
 
     function buildSystems(n){
       const W = game.viewport.w, H = game.viewport.h;
-      const pad = 74;
+      const pad = 64;
+
+      const labels = (SYSTEM_LABELS[game.lvlIndex] || []).slice(0,n);
+      const baseR = clamp(Math.min(46, Math.max(34, W*0.055)), 34, 46);
+
+      // 12.5: grid layout on small screens for many systems (less cramped)
+      const useGrid = (W <= 520 && n >= 7);
+
+      if(useGrid){
+        const cols = 3;
+        const rows = Math.ceil(n/cols);
+        const gx0 = pad;
+        const gx1 = W - pad;
+        const gy0 = H*0.25;
+        const gy1 = H*0.60;
+        const xs = [];
+        for(let i=0;i<n;i++){
+          const c = i % cols;
+          const r = Math.floor(i/cols);
+          const x = lerp(gx0, gx1, cols===1 ? 0.5 : c/(cols-1));
+          const y = lerp(gy0, gy1, rows===1 ? 0.5 : r/(rows-1));
+          // small jitter to avoid perfect stacking
+          xs.push({x: x + rnd(-10,10), y: y + rnd(-8,8)});
+        }
+        return xs.map((p,i)=>({ x:p.x, y:p.y, r:baseR, idx:i, label: labels[i] || ("SYS "+(i+1)) }));
+      }
+
+      // default: curved line
       const xs=[];
       if(n===1) xs.push(W*0.5);
       else for(let i=0;i<n;i++) xs.push(lerp(pad, W-pad, i/(n-1)));
 
       const yBase = H*0.33;
       const yAmp  = Math.min(110, H*0.18);
-      const baseR = clamp(Math.min(46, Math.max(34, W*0.055)), 34, 46);
 
-      const labels = (SYSTEM_LABELS[game.lvlIndex] || []).slice(0,n);
       return xs.map((x,i)=>{
         const phase = (i/(Math.max(1,n-1))) * Math.PI * 1.2;
         const y = yBase + Math.sin(phase) * yAmp;
@@ -535,7 +872,7 @@
       game.tutorial.active=true;
       game.tutorial.step=0;
       game.tutorialImpactDone=false;
-      toast("Level 1: Du siehst nur den Ursprung. Folgen kommen später.", "Tutorial");
+      
     }
 
     function tutorialTick(){
@@ -543,19 +880,19 @@
       switch(game.tutorial.step){
         case 0:
           game.records.forEach((r,i)=>{ r.state=(i===0?"bad":"good"); r.link=null; r.repTo=0; r.localFixTo=-1; });
-          toast("Tippe rot zum Fix am Ursprung.", "Tutorial");
+          
           game.tutorial.step=1;
           break;
         case 1:
           if(game.metrics.errors===0){
-            toast("Gut ✔️ Jetzt kommt echtes Leben: Unterbrechungen.", "Tutorial");
+            
             game.tutorial.step=2;
           }
           break;
         case 2:
           if(!game.task){
             spawnTask(true);
-            toast("Mini-Task: schnell entscheiden – dann zurück zur Bereinigung.", "Tutorial");
+            
           }
           game.tutorial.step=3;
           break;
@@ -571,12 +908,19 @@
     // =========================
     // Tasks: Minigame over data
     // =========================
+    const seenToasts = new Set();
+
+    function canSpawnTask(force=false){
+      if(game.sessionOn && game.sessionState==="ended") return false;
+      if(game.task) return false;
+      if(now() < (game.nextTaskAt||0)) return false;
+      return true;
+    }
+
     function spawnTask(force=false){
       const L = LEVELS[game.lvlIndex];
-      if(game.task) return;
-      if(game.sessionOn && game.sessionState==="ended") return;
-
-      // In Level 1: allow tutorial task. In others: random
+      if(!canSpawnTask(force)) return;
+// In Level 1: allow tutorial task. In others: random
       if(!force){
         // probability tuned for not-too-annoying
         const p = (game.mdm ? 0.035 : 0.055);
@@ -597,8 +941,23 @@
         x: rnd(game.viewport.w*0.32, game.viewport.w*0.68),
         y: rnd(game.viewport.h*0.48, game.viewport.h*0.78),
       };
+      // keep task panel fully visible (mobile-safe)
+      (function(){
+        const boxH = 150;              // approx height of task panel including buttons
+        const extraBottom = (window.innerWidth <= 520) ? 130 : 60; // room for bottom UI / safe-area
+        const minY = 50;
+        const maxY = Math.max(minY, game.viewport.h - boxH - extraBottom);
+        game.task.y = Math.max(minY, Math.min(game.task.y, maxY));
+
+        const boxW = Math.min(460, game.viewport.w*0.92);
+        const minX = boxW*0.50;
+        const maxX = Math.max(minX, game.viewport.w - boxW*0.50);
+        game.task.x = Math.max(minX, Math.min(game.task.x, maxX));
+      })();
+
       game.taskUntil = now() + (game.demo.on ? DEMO_TASK_DURATION_MS : TASK_DURATION_MS);
-      game.taskRects = [];
+      // 12.5: nextTaskAt is handled centrally on task end (cooldown)
+game.taskRects = [];
     }
 
     function resolveTask(ok){
@@ -608,13 +967,13 @@
         if(game.mdm && Math.random() < 0.35){
           toast(`👍 Sauberer Prozess – MDM verhindert Folgefehler.`, "MDM");
         } else {
-          toast(`Task erledigt ✔︎ — Fokus zurück auf Stammdaten.`, "Task");
+          
         }
       } else {
         // penalty: short burst of background decay / replication boost
         game.metrics.score -= 30;
         game.metrics.cost += 80 + (LEVELS[game.lvlIndex].systems*18);
-        toast(`Task schief gelaufen — Datenqualität leidet im Hintergrund.`, "Task");
+        
         // inject 1-2 new upstream errors to simulate distraction
         const n = 1 + (Math.random()<0.20 ? 1 : 0);
         for(let i=0;i<n;i++){
@@ -623,8 +982,139 @@
         }
       }
       game.task = null;
+      // 12.5: extra cooldown for tasks in MDM mode
+      if(game.mdm){ game.nextTaskAt = now() + 7.0; }
+
       game.taskRects = [];
       game.taskUntil = 0;
+    }
+
+    // 12.5: Task UI as bottom sheet (mobile-first)
+    function renderTaskSheet(){
+      const sheet = el("taskSheet");
+      if(!sheet) return;
+
+      // only show when a task is active and session is live (if session enabled)
+      const active = !!(game.task && (game.sessionOn ? game.sessionState==="live" : true));
+      if(!active){
+        sheet.style.display = "none";
+        return;
+      }
+
+      const t = game.task;
+      sheet.style.display = "block";
+
+      // title/prompt
+      const title = el("taskTitle");
+      const prompt = el("taskPrompt");
+      if(title) title.textContent = `${t.icon} ${t.title}`;
+      if(prompt) prompt.textContent = t.prompt;
+
+      // progress bar
+      const dur = (game.demo.on ? DEMO_TASK_DURATION_MS : TASK_DURATION_MS);
+      const frac = clamp((game.taskUntil - now()) / dur, 0, 1);
+      const fill = el("taskBarFill");
+      if(fill){
+        fill.style.width = (frac*100).toFixed(1) + "%";
+        fill.style.background = (frac>0.34) ? "rgba(34,197,94,.78)" : "rgba(239,68,68,.78)";
+      }
+
+      // buttons
+      const btns = el("taskBtns");
+      if(btns && !btns.dataset.bound){
+        btns.dataset.bound = "1";
+        btns.addEventListener("click", (e)=>{
+          const b = e.target.closest("button[data-ok]");
+          if(!b) return;
+          const ok = b.dataset.ok === "1";
+          resolveTask(ok);
+        });
+      }
+      if(btns){
+        btns.innerHTML = t.options.map((o)=>(
+          `<button class="taskBtn" data-ok="${o.ok?1:0}" type="button">${escapeHtml(o.label)}</button>`
+        )).join("");
+      }
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function hideHudFields(){
+      const hud = document.querySelector('#hudWrap .hud');
+      if(!hud) return;
+      const kill = ["zeit","time","score","punkte","produktivität","productivity"];
+      const nodes = Array.from(hud.querySelectorAll('*'));
+      for(const n of nodes){
+        const t = (n.textContent||"").trim().toLowerCase();
+        if(!t) continue;
+        if(kill.some(k=> t === k || t.startsWith(k) || t.includes(" "+k) || t.includes("\n"+k))){
+          let p = n;
+          for(let i=0;i<5 && p && p !== hud;i++){
+            if(p.classList && (p.classList.contains('stat') || p.classList.contains('statItem') || p.classList.contains('hudItem') || p.classList.contains('kv') || p.classList.contains('hudCell'))) break;
+            p = p.parentElement;
+          }
+
+    function hideExtraHudRows(){
+      // Hide the label/value pairs for Zeit, Score, Produktivität (keep other stats)
+      const pairs = [
+        {kText:"Zeit", vId:"timeVal"},
+        {kText:"Score (Session)", vId:"scoreVal"},
+        {kText:"Produktivität", vId:"prodVal"},
+      ];
+      for(const p of pairs){
+        const v = document.getElementById(p.vId);
+        if(v){
+          // value container
+          v.style.display = "none";
+          // label is usually previous sibling .k
+          const k = v.previousElementSibling;
+          if(k && k.classList && k.classList.contains('k')) k.style.display="none";
+          // if the label isn't direct sibling, search within same .stat
+          const stat = v.closest('.stat');
+          if(stat){
+            const ks = Array.from(stat.querySelectorAll('.k'));
+            for(const kk of ks){
+              if((kk.textContent||"").trim() === p.kText) kk.style.display="none";
+            }
+          }
+        } else {
+          // hide by text within HUD if id missing
+          const hud = document.querySelector('#hudWrap .hud');
+          if(hud){
+            for(const kk of hud.querySelectorAll('.k')){
+              if((kk.textContent||"").trim() === p.kText) kk.style.display="none";
+            }
+          }
+        }
+      }
+      // Hide productivity bar container if present
+      const pb = document.getElementById('prodBar');
+      if(pb){
+        const bar = pb.closest('.bar');
+        if(bar) bar.style.display = "none";
+      }
+      // Optionally remove the whole Score stat tile if it becomes empty-ish
+      const scoreVal = document.getElementById('scoreVal');
+      if(scoreVal){
+        const stat = scoreVal.closest('.stat');
+        if(stat){
+          // if it only contains hidden nodes, hide whole tile
+          const visible = Array.from(stat.querySelectorAll('*')).some(n=> getComputedStyle(n).display !== 'none' && (n.textContent||'').trim().length);
+          // still keep the tile if Systeme etc (not the case)
+          if(!visible) stat.style.display="none";
+        }
+      }
+    }
+          if(p && p !== hud) p.style.display = 'none';
+        }
+      }
     }
 
     // =========================
@@ -680,11 +1170,11 @@
 
       // Base interval depends on MDM + current signal
       const lateFactor = clamp(sig.late / Math.max(10, game.records.length*0.12), 0.2, 1.0);
-      const mdmMul = game.mdm ? 1.9 : 1.0;
+      const mdmMul = game.mdm ? 2.6 : 1.0;
       game.nextEventIn = (8.5 + Math.random()*8.0) * mdmMul * (1.2 - 0.5*lateFactor);
 
       // Probability to actually fire now
-      const p = clamp((0.18 + lateFactor*0.45) * qualityDamp * (game.mdm ? 0.22 : 1.0), 0, 0.75);
+      const p = clamp((0.18 + lateFactor*0.45) * qualityDamp * (game.mdm ? 0.10 : 1.0), 0, 0.75);
       if(Math.random() > p) return;
 
       // Pick a system focus
@@ -718,11 +1208,11 @@
 
       // schedule next check
       const lateFactor = clamp(sig.late / Math.max(10, game.records.length*0.12), 0.2, 1.0);
-      const mdmMul = game.mdm ? 2.0 : 1.0;
+      const mdmMul = game.mdm ? 2.8 : 1.0;
       game.nextImpactIn = (10.5 + Math.random()*10.0) * mdmMul * (1.25 - 0.55*lateFactor);
 
       const taskBoost = game.task ? 0.08 : 0;
-      const p = clamp((0.12 + lateFactor*0.55 + taskBoost) * qualityDamp * (game.mdm ? 0.22 : 1.0), 0, 0.85);
+      const p = clamp((0.12 + lateFactor*0.55 + taskBoost) * qualityDamp * (game.mdm ? 0.10 : 1.0), 0, 0.85);
       if(Math.random() > p) return;
 
       const useDup = (sig.dupLate > sig.badLate) && (Math.random() < 0.75);
@@ -743,7 +1233,7 @@
       const L = LEVELS[game.lvlIndex];
 
       // spawn minigame tasks (even in level 1, but lower)
-      if(!game.task && (L.id===1 ? Math.random()<dt*0.04 : true)) spawnTask(false);
+      if(canSpawnTask(false) && (L.id===1 ? Math.random()<dt*0.04 : true)) spawnTask(false);
 
       // task timeouts
       if(game.task && now() > game.taskUntil){
@@ -751,7 +1241,7 @@
       }
 
       // Distraction factor: while task is active, more decay + more replication
-      const taskFactor = game.task ? 1.28 : 1.0;
+      const taskFactor = game.task ? 1.18 : 1.0;
 
       // "Entstehung" stark früh, Replikation überall
       const errRate  = L.baseErrorRate * (game.mdm ? 0.08 : 1.0) * taskFactor;
@@ -799,7 +1289,7 @@
             if(Math.random() < relapse){
               r.localFixTo = -1;
         r.localMergeTo = -1;
-              if(Math.random() < 0.15) toast("Lokalfix ist wieder aufgetaucht – Ursprung war nie sauber.", "Folgesystem");
+              if(Math.random() < 0.15) toast("Lokalfix wieder da – Ursprung unsauber.", "Folgesystem");
             }
           }
           if(r.localMergeTo >= 2){
@@ -807,7 +1297,7 @@
             const relapse = (0.008 + frac*0.016) * dt * taskFactor;
             if(Math.random() < relapse){
               r.localMergeTo = -1;
-              if(Math.random() < 0.12) toast("Downstream-Mapping ist wieder inkonsistent – Dublette am Ursprung bleibt.", "Folgesystem");
+              if(Math.random() < 0.12) toast("Downstream wieder inkonsistent – Dublette bleibt.", "Folgesystem");
             }
           }
         }
@@ -979,8 +1469,6 @@
       const q = Math.round(game.metrics.quality);
       ctx.fillStyle="rgba(255,255,255,.86)";
       ctx.font="850 14px system-ui";
-      ctx.fillText(`Qualität: ${q}%`, px+18, py+132);
-      ctx.fillText(`Kosten: ${fmtEuro(game.metrics.cost)}`, px+180, py+132);
 
       ctx.strokeStyle="rgba(255,255,255,.10)";
       ctx.beginPath(); ctx.moveTo(px+18, py+150); ctx.lineTo(px+pw-18, py+150); ctx.stroke();
@@ -1189,64 +1677,8 @@
           }
         }
       }
-
-      // Task minigame card (on top of data)
-      if(game.task && (game.sessionOn ? game.sessionState==="live" : true)){
-        const t = game.task;
-        const pad=12;
-        const w = Math.min(360, W-30);
-        const h = 148;
-        const x = clamp(t.x - w/2, 15, W-w-15);
-        const y = clamp(t.y - h/2, 70, H-h-20);
-
-        ctx.save();
-        // card
-        ctx.fillStyle="rgba(17,24,39,.92)";
-        ctx.strokeStyle="rgba(255,255,255,.16)";
-        ctx.lineWidth=1;
-        ctx.beginPath(); roundRect(ctx, x, y, w, h, 16); ctx.fill(); ctx.stroke();
-
-        // timer bar
-        const frac = clamp((game.taskUntil - now()) / (game.demo.on ? DEMO_TASK_DURATION_MS : TASK_DURATION_MS), 0, 1);
-        ctx.fillStyle="rgba(255,255,255,.08)";
-        ctx.beginPath(); roundRect(ctx, x+pad, y+10, w-2*pad, 8, 6); ctx.fill();
-        ctx.fillStyle=frac>0.34 ? "rgba(34,197,94,.75)" : "rgba(239,68,68,.75)";
-        ctx.beginPath(); roundRect(ctx, x+pad, y+10, (w-2*pad)*frac, 8, 6); ctx.fill();
-
-        ctx.fillStyle="rgba(255,255,255,.92)";
-        ctx.font="900 14px system-ui";
-        ctx.textAlign="left"; ctx.textBaseline="middle";
-        ctx.fillText(`${t.icon} ${t.title}`, x+pad, y+34);
-
-        ctx.fillStyle="rgba(229,231,235,.88)";
-        ctx.font="650 13px system-ui";
-        wrapText(t.prompt, x+pad, y+58, w-2*pad, 16);
-
-        // options
-        game.taskRects = [];
-        const oy = y + 92;
-        const btnW = (w-2*pad-12) / 3;
-        for(let i=0;i<3;i++){
-          const opt = t.options[i];
-          const bx = x+pad + i*(btnW+6);
-          const by = oy;
-          const bw = btnW;
-          const bh = 40;
-
-          ctx.fillStyle="rgba(255,255,255,.06)";
-          ctx.strokeStyle="rgba(255,255,255,.14)";
-          ctx.lineWidth=1;
-          ctx.beginPath(); roundRect(ctx, bx, by, bw, bh, 12); ctx.fill(); ctx.stroke();
-
-          ctx.fillStyle="rgba(255,255,255,.90)";
-          ctx.font="800 12px system-ui";
-          ctx.textAlign="center"; ctx.textBaseline="middle";
-          wrapText(opt.label, bx+10, by+bh/2, bw-20, 14);
-
-          game.taskRects.push({x:bx,y:by,w:bw,h:bh, ok:opt.ok});
-        }
-        ctx.restore();
-      }
+      // Task UI is rendered as bottom sheet (12.5)
+      // (Canvas no longer draws task card)
 
       // quality badge
       const q=game.metrics.quality;
@@ -1382,11 +1814,11 @@
         r.link=null;
         game.metrics.fixes++;
         game.metrics.score += 40;
-        toast("Fix ✔︎ — Ursprung bereinigt (wirkt in allen Systemen).", "Ursprung");
+        toast("Fix ✔︎ — Ursprung bereinigt (wirkt in allen Systemen).", "Ursprung", "info", 2.8, true);
       } else if(r.state==="dupA" || r.state==="dupB"){
-        toast("Orange = Dublette. Long-Press = Merge (Golden Record).", "Dubletten");
+        toast("Orange = Dublette. Long-Press = Merge (Golden Record).", "Dubletten", "info", 3.2, true);
       } else {
-        toast("Grün = sauber.", "OK");
+        
       }
     }
 
@@ -1682,6 +2114,7 @@
       game.sessionState = "live";
 
       game.task=null;
+      if(!game.task){ game.nextTaskAt = now() + (game.mdm ? 7.0 : (6.0 + Math.random()*6.0)); }
       game.taskRects=[];
       game.taskUntil=0;
 
@@ -1731,8 +2164,123 @@
 
     el("btnShare").addEventListener("click", ()=>shareCanvasPNG());
     el("btnHeal").addEventListener("click", ()=>healAllWithMdm());
+    (() => { const e = document.getElementById("btnMiniClose"); if(e) e.addEventListener("click", closeMini); })();    // --- Mini Game: Data Zen (Memory) ---
+    // Pops up after longer cleanliness in MDM mode. Calm, quick, mobile-friendly.
+    const mini = {
+      active:false,
+      lastOpenAt:-999,
+      cooldown:60.0,        // seconds between opens
+      bonusAwarded:false,
+      matches:0,
+      bonus:0,
+      first:null,
+      lock:false,
+      values:[]
+    };
 
-    el("btnReset").addEventListener("click", ()=>{
+    function miniSetup(){
+      // 6 pairs (duplicates) -> 12 tiles
+      const base = ["KUNDE 17","KUNDE 42","LIEF 08","MAT 1337","ADR 05","PAY 21"];
+      const vals = base.concat(base);
+      // shuffle
+      for(let i=vals.length-1;i>0;i--){
+        const j=(Math.random()*(i+1))|0;
+        [vals[i], vals[j]] = [vals[j], vals[i]];
+      }
+      mini.values = vals;
+      mini.matches = 0;
+      mini.first = null;
+      mini.lock = false;
+      mini.bonus = 0;
+      mini.bonusAwarded = false;
+      el("miniScore").textContent = "0";
+      el("miniBonus").textContent = "0";
+
+      const grid = el("miniGrid");
+      grid.innerHTML = "";
+      vals.forEach((v, idx)=>{
+        const t = document.createElement("button");
+        t.className = "miniTile";
+        t.type = "button";
+        t.dataset.idx = String(idx);
+        t.dataset.val = v;
+        t.innerHTML = `<div class="face back">💙</div><div class="face front" style="display:none">${v}</div>`;
+        t.addEventListener("click", ()=>miniFlip(t));
+        grid.appendChild(t);
+      });
+    }
+
+    function miniFlip(tile){
+      if(!mini.active || mini.lock) return;
+      if(tile.classList.contains("matched") || tile.classList.contains("flipped")) return;
+
+      tile.classList.add("flipped");
+      tile.querySelector(".back").style.display = "none";
+      tile.querySelector(".front").style.display = "flex";
+
+      if(!mini.first){
+        mini.first = tile;
+        return;
+      }
+
+      const a = mini.first;
+      const b = tile;
+      mini.first = null;
+
+      if(a.dataset.val === b.dataset.val){
+        a.classList.add("matched");
+        b.classList.add("matched");
+        mini.matches++;
+        el("miniScore").textContent = String(mini.matches);
+
+        if(mini.matches >= 6){
+          miniAwardBonus(true);
+          setTimeout(()=>closeMini(), 650);
+        }
+      } else {
+        mini.lock = true;
+        setTimeout(()=>{
+          for(const t of [a,b]){
+            t.classList.remove("flipped");
+            t.querySelector(".back").style.display = "flex";
+            t.querySelector(".front").style.display = "none";
+          }
+          mini.lock = false;
+        }, 520);
+      }
+    }
+
+    function miniAwardBonus(completed=false){
+      if(mini.bonusAwarded) return;
+      const base = completed ? 180 : 90;
+      const award = base + mini.matches*25;
+      mini.bonus = award;
+      mini.bonusAwarded = true;
+      el("miniBonus").textContent = String(award);
+      game.metrics.score += award;
+      toast(`✨ Bonus: ruhiger Betrieb <span class="tag">+${award} Punkte</span>`, "MDM");
+    }
+
+    function openMini(){
+      if(mini.active) return;
+      mini.active = true;
+      mini.lastOpenAt = now();
+      el("miniWrap").classList.remove("hidden");
+      game.miniPaused = true;
+      miniSetup();
+    }
+
+    function closeMini(){
+      if(!mini.active) return;
+      mini.active = false;
+      el("miniWrap").classList.add("hidden");
+      game.miniPaused = false;
+      if(!mini.bonusAwarded){
+        miniAwardBonus(false);
+      }
+    }
+
+el("btnReset").addEventListener("click", ()=>{
       if(baseline.taken){
         const L = LEVELS[game.lvlIndex];
         if(!L.forceMdm) game.mdm = !game.mdm;
@@ -1771,6 +2319,15 @@
       } else {
         game.cleanTime = 0;
       }
+      // Easter egg: after longer cleanliness in MDM, open a calm mini game
+      const miniReady = game.mdm && game.cleanTime > 26 && !mini.active && (now() - mini.lastOpenAt) > mini.cooldown;
+      if(miniReady){
+        openMini();
+        game.nextCleanToast = game.cleanTime + 18.0 + Math.random()*10.0;
+        requestAnimationFrame(frame);
+        return;
+      }
+
       if(game.cleanTime > game.nextCleanToast && game.cleanTime > 8){
         game.nextCleanToast = game.cleanTime + 14.0 + Math.random()*8.0;
         if(game.mdm){
@@ -1785,6 +2342,7 @@
       runDemo(dt);
       draw();
       updateHUD();
+      renderTaskSheet();
 
       requestAnimationFrame(frame);
     }
@@ -1793,6 +2351,180 @@
     resize();
     initLevel(0);
     requestAnimationFrame(frame);
-  </script>
+  
+    // --- Console hooks (debug/demo) ---
+    // Use in DevTools:
+    //   lyd.mini()        -> open Data Zen
+    //   lyd.miniClose()   -> close
+    //   lyd.mdmOn() / lyd.mdmOff()
+    //   lyd.clean()       -> force clean state (all good, no dups)
+    //   lyd.level(n)      -> go to level 1..N
+    window.lyd = {
+      mini: ()=>openMini(),
+      miniClose: ()=>closeMini(),
+      mdmOn: ()=>{ game.mdm=true; syncMdmUI(); toast("MDM: On (console)", "MDM"); },
+      mdmOff: ()=>{ game.mdm=false; syncMdmUI(); toast("MDM: Off (console)", "MDM"); },
+      clean: ()=>{ for(const r of game.records){ r.state="good"; r.link=null; r.localFixTo=-1; r.localMergeTo=-1; r.repTo=Math.max(r.repTo,0);} toast("Alles sauber (console).", "Qualität"); },
+      level: (n)=>{ const idx=Math.max(0, Math.min(LEVELS.length-1, (n|0)-1)); game.lvlIndex=idx; initLevel(); toast(`Level ${idx+1} (console)`, "Level"); }
+    };
+
+
+    // 11.4: Robust HUD toggle (no dependency on helper funcs)
+    (function(){
+      const btn = document.getElementById("hudToggle");
+      if(!btn) return;
+      function apply(collapsed){
+        document.body.classList.toggle("hudCollapsed", !!collapsed);
+        try{ localStorage.setItem("lyd_hudCollapsed", collapsed ? "1":"0"); }catch(e){}
+      }
+      btn.addEventListener("click", ()=>{
+        const collapsed = !document.body.classList.contains("hudCollapsed");
+        apply(collapsed);
+      }, {passive:true});
+
+      // restore pref
+      let pref = null;
+      try{ pref = localStorage.getItem("lyd_hudCollapsed"); }catch(e){}
+      if(pref === "1") apply(true);
+
+      // auto-collapse on mobile if no pref set
+      if(window.innerWidth <= 520 && pref === null){
+        setTimeout(()=>{ apply(true); }, 2200);
+      }
+    })();
+
+
+    (function(){
+      const t = document.getElementById("hudLevelTiny");
+      if(!t) return;
+      function upd(){
+        try{
+          if(typeof game!=="undefined" && typeof LEVELS!=="undefined"){
+            const lvl = LEVELS[game.lvlIndex] || {name:""};
+            t.textContent = ("Level " + (game.lvlIndex+1) + ": " + (lvl.name||"")).trim();
+          }
+        }catch(e){}
+      }
+      upd();
+      setInterval(upd, 1200);
+    })();
+
+
+    // 12.5 dynamic canvas height (fill space between header and task sheet)
+    
+    function clampStatsToFour(){
+      const grids = [
+        document.querySelector('#hudWrap .stats'),
+        document.querySelector('.hud .stats'),
+        document.getElementById('stats'),
+        document.querySelector('.hudStats')
+      ].filter(Boolean);
+      for(const g of grids){
+        const kids = Array.from(g.children);
+        for(let i=4;i<kids.length;i++){
+          kids[i].style.display = 'none';
+        }
+
+    function pruneStats(){
+      const allowed = ["qualität","systeme","datensätze","datensaetze","dubletten"];
+      const grids = [
+        document.querySelector('#hudWrap .stats'),
+        document.querySelector('.hud .stats'),
+        document.getElementById('stats'),
+        document.querySelector('.hudStats')
+      ].filter(Boolean);
+      for(const g of grids){
+        const kids = Array.from(g.children);
+        for(const el of kids){
+          // Find a likely label node inside tile
+          const labelNode = el.querySelector('.label, .statLabel, .stat-label, .k, .name, .t');
+          const labelTxt = (labelNode ? labelNode.textContent : el.textContent || "").trim().toLowerCase();
+          // Keep if matches allowed; otherwise hide
+          const ok = allowed.some(a => labelTxt.includes(a));
+          if(!ok){
+            el.style.display = 'none';
+          }
+        }
+        // Ensure only first 4 visible tiles remain (in case labels are weird)
+        const vis = Array.from(g.children).filter(x => getComputedStyle(x).display !== 'none');
+        for(let i=4;i<vis.length;i++) vis[i].style.display='none';
+      }
+    }
+      }
+    }
+
+function layoutTight(){
+      const stage = document.querySelector('.stage');
+      const task = document.getElementById('taskSheet');
+      const header = document.querySelector('.hudToggle');
+      if(!stage) return;
+      let h = window.innerHeight;
+      if(header) h -= header.getBoundingClientRect().height;
+      let taskH = 0;
+      if(task && task.style.display!=='none'){ taskH = task.getBoundingClientRect().height; h -= taskH; }
+      // keep info toast above the task sheet
+      const toastBottom = (taskH>0 ? (taskH + 14) : 0);
+      document.documentElement.style.setProperty('--toastBottom', toastBottom ? (toastBottom + 'px') : '');
+      
+      // 12.5: place info toasts under stats
+      const hudStats = document.querySelector('#hudWrap .hud');
+      if(hudStats){
+        const r = hudStats.getBoundingClientRect();
+        const top = Math.max(12, r.bottom + 10);
+        document.documentElement.style.setProperty('--toastTop', top + 'px');
+      // 13.2: toast zone top under stats
+      document.documentElement.style.setProperty('--toastZoneTop', top + 'px');
+
+      }
+      stage.style.height = Math.max(280, h) + 'px';
+    }
+    window.addEventListener('resize', ()=>{ layoutTight();
+    clampStatsToFour();
+    pruneStats();
+ hideHudFields();
+    hideExtraHudRows(); });
+
+</script>
+
+  
+  <!-- MDM Mini-Game: Data Zen (Memory) -->
+  <div id="miniWrap" class="mini hidden">
+    <div class="miniCard">
+      <div class="miniHead">
+        <div class="miniTitle">MDM-Modus 💙 – Data Zen</div>
+        <button id="btnMiniClose" class="miniClose">Schließen</button>
+      </div>
+      <div class="miniSub">Lange sauber? Dann kurz „Dubletten finden“ – ganz entspannt 🙂</div>
+
+      <div class="miniGrid" id="miniGrid" aria-label="Memory Grid"></div>
+
+      <div class="miniFooter">
+        <div>Matches: <b id="miniScore">0</b>/6</div>
+        <div class="tag">Bonus: +<span id="miniBonus">0</span> Punkte</div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
 </body>
 </html>
+<style>
+#taskToast { z-index: 30; }
+#topToasts { z-index: 20; }
+#bottomToasts { display:none !important; }
+</style>
+
+<style>
+.toastZone{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-top:8px;
+  pointer-events:none;
+}
+.toastZone .toastCard{
+  pointer-events:auto;
+}
+</style>
